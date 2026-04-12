@@ -5,29 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Socialize</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
-        body { background: #000; overflow-x: hidden; }
-        .gradient-bg { background: radial-gradient(circle at 50% 50%, #2e1065 0%, #000 70%); }
-        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .theme-midnight { background: #000; color: white; }
+        .theme-neon { background: #000; color: #f0f; text-shadow: 0 0 10px #f0f; }
+        .theme-glass { background: linear-gradient(45deg, #1a1a1a, #2e1065); color: white; }
+        
+        .animate-pulse-slow { animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.6; } }
     </style>
 </head>
-<body class="gradient-bg text-white min-h-screen flex items-center justify-center font-sans">
+<body class="theme-midnight min-h-screen flex items-center justify-center transition-all duration-700">
 
-    <div id="landing-view" class="text-center px-4">
-        <h1 class="text-8xl font-black italic tracking-tighter text-fuchsia-600 mb-2 uppercase drop-shadow-[0_0_30px_rgba(192,38,211,0.4)]">Socialize</h1>
-        <p class="text-zinc-500 tracking-[0.3em] text-[10px] uppercase font-bold mb-12">Your Digital Identity in Seconds</p>
-        <button id="login-btn" class="bg-white text-black font-black px-14 py-5 rounded-full hover:scale-105 transition-all shadow-xl active:scale-95">
-            MAKE YOUR PROFILE
-        </button>
+    <div id="landing-view" class="text-center">
+        <div class="fixed inset-0 bg-fuchsia-600/10 animate-pulse-slow -z-10"></div>
+        <h1 class="text-8xl font-black italic text-fuchsia-600 tracking-tighter uppercase mb-4">Socialize</h1>
+        <p id="global-counter" class="text-[10px] tracking-[0.4em] font-bold text-zinc-500 mb-12 italic">LOADING USERS...</p>
+        <button id="login-btn" class="bg-white text-black font-black px-12 py-5 rounded-full hover:scale-110 transition">MAKE YOUR PROFILE</button>
     </div>
 
-    <div id="profile-view" class="hidden glass max-w-sm w-full p-12 rounded-[50px] text-center mx-4">
-        <img id="user-photo" src="" class="w-28 h-28 rounded-full mx-auto mb-6 border-4 border-fuchsia-600 shadow-lg">
-        <h2 id="user-name" class="text-3xl font-black italic mb-3 uppercase tracking-tight"></h2>
-        <p id="user-bio" class="text-zinc-400 text-sm leading-relaxed mb-10 font-medium"></p>
-        <div class="p-4 bg-white/5 rounded-2xl border border-white/5 text-[10px] uppercase tracking-widest text-zinc-500 font-bold">
-            Social Links Locked
-        </div>
+    <div id="profile-view" class="hidden w-full max-w-sm p-10 rounded-[3rem] border border-white/10 bg-white/5 backdrop-blur-xl text-center">
+        <img id="user-photo" src="" class="w-24 h-24 rounded-full mx-auto mb-6 border-2 border-fuchsia-600">
+        <h2 id="user-name" class="text-3xl font-black flex items-center justify-center gap-2 italic"></h2>
+        <p id="view-count" class="text-[9px] text-fuchsia-500 font-bold mb-4"></p>
+        <p id="user-bio" class="text-zinc-400 text-sm mb-8"></p>
+        
+        <a id="ig-link" href="#" target="_blank" class="hidden block w-full py-4 bg-white/10 rounded-2xl font-bold hover:bg-white/20 transition">INSTAGRAM</a>
     </div>
 
     <script type="module" src="./app.js"></script>
