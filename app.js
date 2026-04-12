@@ -16,81 +16,92 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
-// --- ATTACH TO WINDOW (Crucial for Tabs/Buttons to work) ---
-window.showCategory = (catId) => {
-    // Hide all
+// --- WINDOW FUNCTIONS (Bridging HTML and JS) ---
+window.showCategory = (catId, btn) => {
     document.querySelectorAll('.editor-category').forEach(el => el.classList.add('hidden'));
-    // Show selected
     document.getElementById(catId).classList.remove('hidden');
-    console.log("Switching to:", catId);
+    document.querySelectorAll('.tab-link').forEach(l => l.classList.replace('text-fuchsia-500', 'text-zinc-500'));
+    document.querySelectorAll('.tab-link').forEach(l => l.classList.remove('tab-active'));
+    btn.classList.add('tab-active');
 };
 
-window.logout = () => {
-    signOut(auth).then(() => { window.location.href = 'index.html'; });
-};
+window.logout = () => signOut(auth).then(() => location.href = 'index.html');
 
 window.spinWheel = async () => {
     const user = auth.currentUser;
-    if (!user) return alert("Please log in first!");
-    
+    if (!user) return;
     const userRef = doc(db, "users", user.uid);
     const snap = await getDoc(userRef);
     const data = snap.data();
     
     const lastSpin = data.lastSpin || 0;
-    const cooldown = 3600000; 
-    if (Date.now() - lastSpin < cooldown) {
-        const mins = Math.ceil((cooldown - (Date.now() - lastSpin)) / 60000);
-        return alert(`Cooldown! Wait ${mins} more minutes.`);
-    }
+    if (Date.now() - lastSpin < 3600000) return alert("Cooldown: 1 Hour!");
 
-    const prize = Math.random() > 0.9 ? 250 : 25;
+    const prize = Math.random() > 0.95 ? 500 : 25;
     await updateDoc(userRef, { points: increment(prize), lastSpin: Date.now() });
-    alert(`🎰 Winner! You got ${prize} SP!`);
+    alert(`🎰 Winner! +${prize} SP`);
     location.reload();
 };
 
-// --- DATA SYNC ---
+// --- CORE AUTH LOGIC ---
 onAuthStateChanged(auth, async (user) => {
     if (user && window.location.pathname.includes('editor.html')) {
         const userRef = doc(db, "users", user.uid);
         const snap = await getDoc(userRef);
-        
         if (snap.exists()) {
             const data = snap.data();
             document.getElementById('edit-name').value = data.name || "";
             document.getElementById('edit-bio').value = data.bio || "";
             document.getElementById('user-points').innerText = `${data.points || 0} SP`;
-            
-            // Fix "Your Link" Button
-            const linkBtn = document.getElementById('view-link-btn');
-            if (linkBtn) {
-                linkBtn.href = `index.html?u=${user.uid}`;
-                linkBtn.onclick = () => console.log("Opening profile...");
-            }
+            document.getElementById('view-link-btn').href = `index.html?u=${user.uid}`;
         }
     }
 });
 
-// Login
-const loginBtn = document.getElementById('login-btn');
-if (loginBtn) {
-    loginBtn.onclick = () => {
-        signInWithPopup(auth, provider).then(() => {
-            window.location.href = 'editor.html';
-        });
-    };
+// --- PROFILE VIEWER ---
+const params = new URLSearchParams(window.location.search);
+const profileId = params.get('u');
+if (profileId && document.getElementById('profile-view')) {
+    const userRef = doc(db, "users", profileId);
+    getDoc(userRef).then(async (snap) => {
+        if (snap.exists()) {
+            const data = snap.data();
+            await updateDoc(userRef, { views: increment(1) });
+            document.getElementById('landing-view').classList.add('hidden');
+            document.getElementById('profile-view').classList.remove('hidden');
+            
+            // Badges
+            let badges = '';
+            if(data.isOwner) badges += '<span class="bg-fuchsia-600 text-[10px] px-2 py-0.5 rounded ml-2">OWNER</span>';
+            if(data.isDeveloper) badges += '<span class="bg-blue-600 text-[10px] px-2 py-0.5 rounded ml-2">DEV</span>';
+            
+            document.getElementById('user-name').innerHTML = data.name + badges;
+            document.getElementById('user-bio').innerText = data.bio;
+            document.getElementById('user-photo').src = data.avatar;
+            document.getElementById('lvl-display').innerText = `LEVEL ${Math.floor((data.views || 0) / 10) + 1}`;
+        }
+    });
 }
 
-// Save Profile
+// Global User Count
+const counter = document.getElementById('global-counter');
+if (counter) {
+    getDocs(collection(db, "users")).then(snap => {
+        counter.innerHTML = `<span class="relative flex h-2 w-2 mr-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span></span> ${snap.size} USERS ONLINE`;
+    });
+}
+
+// Buttons
+const loginBtn = document.getElementById('login-btn');
+if (loginBtn) loginBtn.onclick = () => signInWithPopup(auth, provider).then(() => location.href = 'editor.html');
+
 const saveBtn = document.getElementById('save-btn');
 if (saveBtn) {
     saveBtn.onclick = async () => {
         const user = auth.currentUser;
-        if (!user) return;
         const name = document.getElementById('edit-name').value;
         const bio = document.getElementById('edit-bio').value;
         await updateDoc(doc(db, "users", user.uid), { name, bio });
-        alert("Cloud Synced! ✅");
+        alert("Synced to Cloud ✅");
     };
 }
