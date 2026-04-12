@@ -3,69 +3,229 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Socialize | Dashboard</title>
+    <title>Socialize | Control Center</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
-        body { background: #0b0b0b; color: white; }
-        .tab-active { border-top: 2px solid #d946ef; }
+        body { background: #0b0b0b; color: white; user-select: none; }
+        .tab-active { color: #d946ef !important; border-top: 2px solid #d946ef; }
         
-        .wheel-container {
-            width: 200px; height: 200px; border: 6px solid #27272a; border-radius: 50%;
-            margin: 0 auto; position: relative;
-            background: conic-gradient(#d946ef 0deg 90deg, #18181b 90deg 180deg, #d946ef 180deg 270deg, #18181b 270deg 360deg);
+        /* The Wheel CSS */
+        .wheel-box { position: relative; width: 220px; height: 220px; margin: 0 auto; }
+        .wheel { 
+            width: 100%; height: 100%; border-radius: 50%; border: 6px solid #27272a;
+            background: conic-gradient(#d946ef 0deg 60deg, #18181b 60deg 120deg, #d946ef 120deg 180deg, #18181b 180deg 240deg, #d946ef 240deg 300deg, #18181b 300deg 360deg);
+            transition: transform 4s cubic-bezier(0.1, 0.7, 0.1, 1); /* Smooth fast-to-slow stop */
         }
-        .wheel-idle { animation: spinSlow 15s linear infinite; }
-        @keyframes spinSlow { 100% { transform: rotate(360deg); } }
-        .pointer { width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 30px solid white; position: absolute; top: -15px; left: 50%; transform: translateX(-50%); z-index: 10; }
+        .spin-slow { animation: idleSpin 20s linear infinite; }
+        @keyframes idleSpin { 100% { transform: rotate(360deg); } }
+        .wheel-pointer { 
+            position: absolute; top: -15px; left: 50%; transform: translateX(-50%);
+            width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 30px solid white; z-index: 10; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
+        }
     </style>
 </head>
-<body class="pb-24">
+<body class="pb-24 font-sans">
 
-    <div class="p-6 flex justify-between items-center bg-[#121212] border-b border-white/5">
-        <h1 class="text-xl font-black italic text-fuchsia-600 uppercase">Socialize</h1>
+    <div class="p-6 flex justify-between items-center bg-[#121212] border-b border-white/5 sticky top-0 z-40">
+        <h1 class="text-xl font-black italic text-fuchsia-600 uppercase tracking-tighter">Socialize</h1>
         <div class="flex items-center gap-4">
-            <span id="user-points" class="text-yellow-500 font-bold text-sm">0 SP</span>
-            <a id="view-link-btn" href="#" target="_blank" class="bg-fuchsia-600 text-[10px] font-black px-4 py-2 rounded-full uppercase tracking-widest hover:bg-fuchsia-500">Your Link</a>
+            <span id="ui-points" class="text-yellow-500 font-bold text-sm tracking-widest">... SP</span>
+            <button id="btn-open-link" class="bg-fuchsia-600 text-[10px] font-black px-4 py-2 rounded-full uppercase tracking-widest hover:bg-fuchsia-500 active:scale-95 transition">Your Link</button>
         </div>
     </div>
 
-    <div class="p-6 max-w-md mx-auto">
-        
-        <div id="cat-profile" class="editor-category space-y-6">
-            <h2 class="text-2xl font-bold uppercase italic">Edit Identity</h2>
-            <input type="text" id="edit-name" placeholder="Name" class="w-full bg-zinc-900 border border-white/10 p-4 rounded-xl">
-            <textarea id="edit-bio" placeholder="Bio" class="w-full bg-zinc-900 border border-white/10 p-4 rounded-xl" rows="3"></textarea>
-            <button id="save-btn" class="w-full bg-white text-black py-4 rounded-xl font-black uppercase">Sync to Cloud</button>
-        </div>
-
-        <div id="cat-spin" class="editor-category hidden text-center space-y-8 pt-4">
-            <div class="relative">
-                <div class="pointer"></div>
-                <div id="main-wheel" class="wheel-container wheel-idle"></div>
+    <div id="link-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center backdrop-blur-sm px-4">
+        <div class="bg-[#171a21] border border-white/10 p-6 rounded-2xl w-full max-w-sm text-center shadow-2xl">
+            <h3 class="text-lg font-bold italic mb-4 uppercase text-fuchsia-500">Your Identity Link</h3>
+            <div class="bg-black/50 p-4 rounded-xl border border-white/5 mb-4 flex items-center justify-between">
+                <span id="short-link-text" class="text-zinc-300 text-xs font-mono tracking-wider overflow-hidden">socialize.me/u/...</span>
+                <span class="material-icons text-zinc-500 text-sm">content_copy</span>
             </div>
-            <h2 class="text-2xl font-bold italic">HOURLY SPIN</h2>
-            <button id="spin-trigger-btn" class="w-full bg-fuchsia-600 py-5 rounded-2xl font-black uppercase">Spin the Wheel</button>
-        </div>
-
-        <div id="cat-settings" class="editor-category hidden space-y-6 pt-4">
-            <h2 class="text-2xl font-bold uppercase italic">Settings</h2>
-            <button id="logout-btn" class="w-full border border-red-500/50 text-red-500 py-4 rounded-xl font-bold">Sign Out</button>
+            <button id="btn-close-link" class="w-full bg-white text-black font-black py-3 rounded-xl uppercase text-xs active:scale-95 transition">Close</button>
         </div>
     </div>
 
-    <div class="fixed bottom-0 left-0 right-0 bg-[#121212] flex justify-around p-4 pb-8 border-t border-white/5">
-        <button id="tab-profile" class="tab-link tab-active text-fuchsia-500 flex flex-col items-center gap-1">
-            <span class="material-icons">person</span><span class="text-[8px] font-bold">PROFILE</span>
+    <div class="p-6 max-w-md mx-auto mt-4">
+        
+        <div id="sec-profile" class="app-section space-y-6 animate-in fade-in duration-300">
+            <h2 class="text-2xl font-black uppercase italic">Edit Identity</h2>
+            <div>
+                <label class="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Display Name</label>
+                <input type="text" id="input-name" class="w-full bg-zinc-900 border border-white/10 p-4 rounded-xl mt-2 text-white focus:border-fuchsia-600 outline-none">
+            </div>
+            <div>
+                <label class="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Biography</label>
+                <textarea id="input-bio" class="w-full bg-zinc-900 border border-white/10 p-4 rounded-xl mt-2 text-white focus:border-fuchsia-600 outline-none" rows="3"></textarea>
+            </div>
+            <button id="btn-save" class="w-full bg-zinc-100 text-black py-4 rounded-xl font-black uppercase tracking-widest active:scale-95 transition hover:bg-white">Sync Data</button>
+        </div>
+
+        <div id="sec-spin" class="app-section hidden text-center space-y-8 animate-in fade-in duration-300">
+            <h2 class="text-2xl font-black uppercase italic">Hourly Spin</h2>
+            <div class="wheel-box">
+                <div class="wheel-pointer"></div>
+                <div id="the-wheel" class="wheel spin-slow"></div>
+            </div>
+            <p class="text-zinc-500 text-xs font-bold uppercase tracking-[0.2em]">Win exclusive points</p>
+            <button id="btn-spin" class="w-full bg-fuchsia-600 py-5 rounded-2xl font-black uppercase tracking-widest shadow-[0_0_20px_rgba(217,70,239,0.3)] active:scale-95 transition">Spin Wheel</button>
+        </div>
+
+        <div id="sec-shop" class="app-section hidden animate-in fade-in duration-300">
+            <h2 class="text-2xl font-black uppercase italic mb-6">Point Shop</h2>
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-zinc-900 p-5 rounded-2xl border border-fuchsia-600/30 text-center relative overflow-hidden">
+                    <div class="absolute inset-0 bg-fuchsia-600/5"></div>
+                    <div class="w-12 h-12 bg-fuchsia-500/20 rounded-full mx-auto mb-3 border-2 border-fuchsia-500"></div>
+                    <p class="text-[10px] font-bold uppercase tracking-wider relative">Neon Frame</p>
+                    <button class="mt-4 text-[9px] bg-fuchsia-600 text-white font-bold px-4 py-2 rounded-full w-full uppercase tracking-widest relative">Buy: 500 SP</button>
+                </div>
+                <div class="bg-zinc-900 p-5 rounded-2xl border border-white/5 text-center opacity-60">
+                    <div class="w-12 h-12 bg-zinc-800 rounded-full mx-auto mb-3"></div>
+                    <p class="text-[10px] font-bold uppercase tracking-wider">Coming Soon</p>
+                    <button class="mt-4 text-[9px] bg-white/10 text-zinc-400 font-bold px-4 py-2 rounded-full w-full uppercase tracking-widest cursor-not-allowed">Locked</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="sec-settings" class="app-section hidden space-y-6 animate-in fade-in duration-300 pt-4">
+            <h2 class="text-2xl font-black uppercase italic">System</h2>
+            <div class="bg-zinc-900 p-4 rounded-xl border border-white/5 flex justify-between items-center">
+                <span class="text-xs font-bold uppercase tracking-widest text-zinc-400">Account ID</span>
+                <span id="ui-uid" class="text-[10px] text-zinc-600 font-mono">...</span>
+            </div>
+            <button id="btn-logout" class="w-full border-2 border-red-900/50 text-red-500 py-4 rounded-xl font-black uppercase tracking-widest hover:bg-red-900/20 active:scale-95 transition">Disconnect</button>
+        </div>
+
+    </div>
+
+    <div class="fixed bottom-0 left-0 right-0 bg-[#121212] border-t border-white/5 flex justify-around p-3 pb-8 z-40">
+        <button id="tab-profile" class="tab-btn tab-active text-fuchsia-500 flex flex-col items-center gap-1 w-1/4">
+            <span class="material-icons text-[22px]">person</span><span class="text-[8px] font-black uppercase tracking-widest">Profile</span>
         </button>
-        <button id="tab-spin" class="tab-link text-zinc-500 flex flex-col items-center gap-1">
-            <span class="material-icons">casino</span><span class="text-[8px] font-bold">SPIN</span>
+        <button id="tab-spin" class="tab-btn text-zinc-600 flex flex-col items-center gap-1 w-1/4">
+            <span class="material-icons text-[22px]">casino</span><span class="text-[8px] font-black uppercase tracking-widest">Spin</span>
         </button>
-        <button id="tab-settings" class="tab-link text-zinc-500 flex flex-col items-center gap-1">
-            <span class="material-icons">settings</span><span class="text-[8px] font-bold">SETTINGS</span>
+        <button id="tab-shop" class="tab-btn text-zinc-600 flex flex-col items-center gap-1 w-1/4">
+            <span class="material-icons text-[22px]">shopping_cart</span><span class="text-[8px] font-black uppercase tracking-widest">Shop</span>
+        </button>
+        <button id="tab-settings" class="tab-btn text-zinc-600 flex flex-col items-center gap-1 w-1/4">
+            <span class="material-icons text-[22px]">settings</span><span class="text-[8px] font-black uppercase tracking-widest">Settings</span>
         </button>
     </div>
 
-    <script type="module" src="./app.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCNl7BW60B6GrHrGx02QaiUbZU3Z3oYlXM",
+            authDomain: "socialize-614d2.firebaseapp.com",
+            projectId: "socialize-614d2",
+            storageBucket: "socialize-614d2.firebasestorage.app",
+            messagingSenderId: "506436447388",
+            appId: "1:506436447388:web:c8d876b69ed57048981159"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // --- 1. TAB SWITCHING LOGIC ---
+        const tabs = ['profile', 'spin', 'shop', 'settings'];
+        tabs.forEach(tab => {
+            document.getElementById(`tab-${tab}`).addEventListener('click', (e) => {
+                // Hide all sections
+                document.querySelectorAll('.app-section').forEach(sec => sec.classList.add('hidden'));
+                // Reset all tabs
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    btn.classList.remove('tab-active', 'text-fuchsia-500');
+                    btn.classList.add('text-zinc-600');
+                });
+                
+                // Show target section & highlight tab
+                document.getElementById(`sec-${tab}`).classList.remove('hidden');
+                const clickedBtn = e.currentTarget;
+                clickedBtn.classList.remove('text-zinc-600');
+                clickedBtn.classList.add('tab-active', 'text-fuchsia-500');
+            });
+        });
+
+        // --- 2. MODAL LOGIC (Your Link) ---
+        const modal = document.getElementById('link-modal');
+        document.getElementById('btn-open-link').addEventListener('click', () => modal.classList.remove('hidden'));
+        document.getElementById('btn-close-link').addEventListener('click', () => modal.classList.add('hidden'));
+
+        // --- 3. WHEEL LOGIC ---
+        const wheel = document.getElementById('the-wheel');
+        const spinBtn = document.getElementById('btn-spin');
+        
+        spinBtn.addEventListener('click', async () => {
+            const user = auth.currentUser;
+            if (!user) return;
+            
+            const userRef = doc(db, "users", user.uid);
+            const snap = await getDoc(userRef);
+            const lastSpin = snap.data().lastSpin || 0;
+            
+            if (Date.now() - lastSpin < 3600000) {
+                alert("The wheel is resting. Come back in an hour.");
+                return;
+            }
+
+            // Start the visual spin
+            wheel.classList.remove('spin-slow'); // Stop idle
+            const deg = Math.floor(3600 + Math.random() * 3600); // Massive spin
+            wheel.style.transform = `rotate(${deg}deg)`;
+            spinBtn.innerText = "SPINNING...";
+            spinBtn.disabled = true;
+
+            // Wait for CSS transition to finish (4s)
+            setTimeout(async () => {
+                const prize = Math.random() > 0.9 ? 500 : 50;
+                await updateDoc(userRef, { points: increment(prize), lastSpin: Date.now() });
+                alert(`🎰 BOOM! You won ${prize} SP!`);
+                location.reload(); // Refresh to update points UI & reset wheel
+            }, 4200);
+        });
+
+        // --- 4. FIREBASE DATA SYNC ---
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = 'index.html'; // Kick out if not logged in
+                return;
+            }
+
+            // Fill User Data
+            document.getElementById('ui-uid').innerText = user.uid.substring(0, 10) + "...";
+            // Make the link look short and clean for the UI
+            document.getElementById('short-link-text').innerText = `socialize.me/u/${user.uid.substring(0, 6)}`;
+            
+            const userRef = doc(db, "users", user.uid);
+            const snap = await getDoc(userRef);
+            if (snap.exists()) {
+                const data = snap.data();
+                document.getElementById('input-name').value = data.name || "";
+                document.getElementById('input-bio').value = data.bio || "";
+                document.getElementById('ui-points').innerText = `${data.points || 0} SP`;
+            }
+
+            // Save Data
+            document.getElementById('btn-save').addEventListener('click', async () => {
+                await updateDoc(userRef, { 
+                    name: document.getElementById('input-name').value, 
+                    bio: document.getElementById('input-bio').value 
+                });
+                alert("Data Synced to Cloud. ✅");
+            });
+        });
+
+        // --- 5. LOGOUT ---
+        document.getElementById('btn-logout').addEventListener('click', () => {
+            signOut(auth).then(() => window.location.href = 'index.html');
+        });
+
+    </script>
 </body>
 </html>
