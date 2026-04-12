@@ -6,27 +6,29 @@
     <title>Socialize | Your Digital Identity</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background: #050505; color: white; font-family: sans-serif; }
-        .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+        .glow { box-shadow: 0 0 20px rgba(192, 38, 211, 0.3); }
+        body { background: radial-gradient(circle at top right, #1a1a1a, #000); }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center">
+<body class="text-white min-h-screen flex flex-col items-center justify-center p-6">
 
-    <div id="landing" class="text-center p-6">
-        <h1 class="text-7xl font-black italic tracking-tighter text-fuchsia-600 mb-4">SOCIALIZE</h1>
-        <p class="text-zinc-400 mb-8">Create your custom link profile in seconds.</p>
-        <button id="login-btn" class="bg-white text-black px-10 py-4 rounded-full font-bold hover:bg-fuchsia-500 transition">
+    <div id="landing-view" class="text-center">
+        <h1 class="text-6xl font-black italic tracking-tighter text-fuchsia-600 mb-2 drop-shadow-2xl">SOCIALIZE</h1>
+        <p class="text-zinc-500 font-medium mb-8 tracking-widest uppercase text-xs">Your custom link profile in seconds.</p>
+        <button id="login-btn" class="bg-white text-black font-black px-10 py-4 rounded-full hover:scale-105 transition-transform glow">
             MAKE YOUR PROFILE
         </button>
     </div>
 
-    <div id="profile" class="hidden w-full max-w-md p-8 text-center">
-        <img id="p-img" src="" class="w-24 h-24 rounded-full mx-auto mb-4 border-2 border-fuchsia-500">
-        <h2 id="p-name" class="text-3xl font-bold mb-2"></h2>
-        <p id="p-bio" class="text-zinc-400 mb-8"></p>
-        <div id="p-links" class="space-y-4"></div>
+    <div id="profile-view" class="hidden max-w-sm w-full bg-zinc-900/50 backdrop-blur-xl p-8 rounded-[3rem] border border-zinc-800 text-center">
+        <img id="user-photo" src="" class="w-24 h-24 rounded-full mx-auto mb-4 border-2 border-fuchsia-600 p-1">
+        <h2 id="user-name" class="text-2xl font-bold"></h2>
+        <p id="user-bio" class="text-zinc-400 mt-2 mb-6"></p>
+        <div class="space-y-3">
+            <div class="w-full bg-zinc-800 p-4 rounded-2xl text-sm font-bold">STAY TUNED</div>
+        </div>
     </div>
 
-    <script type="module" src="app.js"></script>
+    <script type="module" src="./app.js"></script>
 </body>
 </html>
