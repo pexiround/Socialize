@@ -8,74 +8,60 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
         body { background: #0b0b0b; color: white; }
-        .tab-active { color: #d946ef !important; border-top: 2px solid #d946ef; }
+        .tab-active { border-top: 2px solid #d946ef; }
         
-        /* THE WHEEL ANIMATIONS */
         .wheel-container {
-            width: 220px; height: 220px;
-            border: 8px solid #1f1f1f;
-            border-radius: 50%;
-            position: relative;
-            margin: 0 auto;
-            background: conic-gradient(#d946ef 0% 25%, #701a75 25% 50%, #d946ef 50% 75%, #701a75 75% 100%);
-            transition: transform 4s cubic-bezier(0.15, 0, 0.15, 1);
+            width: 200px; height: 200px; border: 6px solid #27272a; border-radius: 50%;
+            margin: 0 auto; position: relative;
+            background: conic-gradient(#d946ef 0deg 90deg, #18181b 90deg 180deg, #d946ef 180deg 270deg, #18181b 270deg 360deg);
         }
-        .wheel-idle { animation: rotateIdle 20s linear infinite; }
-        @keyframes rotateIdle { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        
-        .wheel-pointer {
-            position: absolute; top: -10px; left: 50%;
-            transform: translateX(-50%);
-            width: 0; height: 0; 
-            border-left: 15px solid transparent; border-right: 15px solid transparent;
-            border-top: 30px solid white; z-index: 10;
-        }
+        .wheel-idle { animation: spinSlow 15s linear infinite; }
+        @keyframes spinSlow { 100% { transform: rotate(360deg); } }
+        .pointer { width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 30px solid white; position: absolute; top: -15px; left: 50%; transform: translateX(-50%); z-index: 10; }
     </style>
 </head>
 <body class="pb-24">
 
-    <div class="p-6 flex justify-between items-center border-b border-white/5 bg-[#121212] sticky top-0 z-50">
+    <div class="p-6 flex justify-between items-center bg-[#121212] border-b border-white/5">
         <h1 class="text-xl font-black italic text-fuchsia-600 uppercase">Socialize</h1>
         <div class="flex items-center gap-4">
             <span id="user-points" class="text-yellow-500 font-bold text-sm">0 SP</span>
-            <a id="view-link-btn" href="#" target="_blank" class="bg-fuchsia-600 text-[10px] font-black px-4 py-2 rounded-full uppercase tracking-widest hover:bg-fuchsia-500 transition">Your Link</a>
+            <a id="view-link-btn" href="#" target="_blank" class="bg-fuchsia-600 text-[10px] font-black px-4 py-2 rounded-full uppercase tracking-widest hover:bg-fuchsia-500">Your Link</a>
         </div>
     </div>
 
     <div class="p-6 max-w-md mx-auto">
+        
         <div id="cat-profile" class="editor-category space-y-6">
-            <h2 class="text-2xl font-bold italic uppercase">Edit Profile</h2>
-            <input type="text" id="edit-name" placeholder="Display Name" class="w-full bg-zinc-900 border border-white/10 p-4 rounded-xl">
+            <h2 class="text-2xl font-bold uppercase italic">Edit Identity</h2>
+            <input type="text" id="edit-name" placeholder="Name" class="w-full bg-zinc-900 border border-white/10 p-4 rounded-xl">
             <textarea id="edit-bio" placeholder="Bio" class="w-full bg-zinc-900 border border-white/10 p-4 rounded-xl" rows="3"></textarea>
             <button id="save-btn" class="w-full bg-white text-black py-4 rounded-xl font-black uppercase">Sync to Cloud</button>
         </div>
 
-        <div id="cat-spin" class="editor-category hidden text-center space-y-8 py-6">
+        <div id="cat-spin" class="editor-category hidden text-center space-y-8 pt-4">
             <div class="relative">
-                <div class="wheel-pointer"></div>
+                <div class="pointer"></div>
                 <div id="main-wheel" class="wheel-container wheel-idle"></div>
             </div>
-            <div>
-                <h2 class="text-2xl font-bold italic">HOURLY SPIN</h2>
-                <p id="spin-timer" class="text-zinc-500 text-[10px] uppercase font-bold tracking-widest mt-2"></p>
-            </div>
-            <button id="spin-trigger-btn" class="w-full bg-fuchsia-600 py-5 rounded-2xl font-black uppercase active:scale-95 transition">Spin the Wheel</button>
+            <h2 class="text-2xl font-bold italic">HOURLY SPIN</h2>
+            <button id="spin-trigger-btn" class="w-full bg-fuchsia-600 py-5 rounded-2xl font-black uppercase">Spin the Wheel</button>
         </div>
 
-        <div id="cat-shop" class="editor-category hidden"> <h2 class="text-2xl font-bold mb-6">SHOP COMING SOON</h2> </div>
-        <div id="cat-settings" class="editor-category hidden text-center pt-10">
-            <button id="logout-btn" class="text-red-500 font-bold">Logout</button>
+        <div id="cat-settings" class="editor-category hidden space-y-6 pt-4">
+            <h2 class="text-2xl font-bold uppercase italic">Settings</h2>
+            <button id="logout-btn" class="w-full border border-red-500/50 text-red-500 py-4 rounded-xl font-bold">Sign Out</button>
         </div>
     </div>
 
-    <div class="fixed bottom-0 left-0 right-0 bg-[#121212] border-t border-white/5 flex justify-around p-4 pb-8">
-        <button id="tab-btn-profile" class="tab-link text-zinc-500 flex flex-col items-center gap-1">
+    <div class="fixed bottom-0 left-0 right-0 bg-[#121212] flex justify-around p-4 pb-8 border-t border-white/5">
+        <button id="tab-profile" class="tab-link tab-active text-fuchsia-500 flex flex-col items-center gap-1">
             <span class="material-icons">person</span><span class="text-[8px] font-bold">PROFILE</span>
         </button>
-        <button id="tab-btn-spin" class="tab-link text-zinc-500 flex flex-col items-center gap-1">
-            <span class="material-icons">auto_fix_high</span><span class="text-[8px] font-bold">SPIN</span>
+        <button id="tab-spin" class="tab-link text-zinc-500 flex flex-col items-center gap-1">
+            <span class="material-icons">casino</span><span class="text-[8px] font-bold">SPIN</span>
         </button>
-        <button id="tab-btn-settings" class="tab-link text-zinc-500 flex flex-col items-center gap-1">
+        <button id="tab-settings" class="tab-link text-zinc-500 flex flex-col items-center gap-1">
             <span class="material-icons">settings</span><span class="text-[8px] font-bold">SETTINGS</span>
         </button>
     </div>
