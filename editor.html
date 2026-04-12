@@ -3,121 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Socialize | Control Center</title>
+    <title>Socialize | OS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
-        body { background: #0b0b0b; color: white; user-select: none; }
+        body { background: #080808; color: white; font-family: 'Inter', sans-serif; }
         .tab-active { color: #d946ef !important; border-top: 2px solid #d946ef; }
         
-        /* The Wheel CSS */
-        .wheel-box { position: relative; width: 220px; height: 220px; margin: 0 auto; }
+        /* WHEEL SYSTEM */
+        .wheel-box { position: relative; width: 240px; height: 240px; margin: 0 auto; }
         .wheel { 
-            width: 100%; height: 100%; border-radius: 50%; border: 6px solid #27272a;
-            background: conic-gradient(#d946ef 0deg 60deg, #18181b 60deg 120deg, #d946ef 120deg 180deg, #18181b 180deg 240deg, #d946ef 240deg 300deg, #18181b 300deg 360deg);
-            transition: transform 4s cubic-bezier(0.1, 0.7, 0.1, 1); /* Smooth fast-to-slow stop */
+            width: 100%; height: 100%; border-radius: 50%; border: 8px solid #1f1f1f;
+            background: conic-gradient(
+                #d946ef 0deg 72deg, #111 72deg 144deg, 
+                #d946ef 144deg 216deg, #111 216deg 288deg, 
+                #ffd700 288deg 360deg /* The Gold Exotic Slice */
+            );
+            transition: transform 5s cubic-bezier(0.1, 0.8, 0.1, 1);
         }
-        .spin-slow { animation: idleSpin 20s linear infinite; }
-        @keyframes idleSpin { 100% { transform: rotate(360deg); } }
-        .wheel-pointer { 
-            position: absolute; top: -15px; left: 50%; transform: translateX(-50%);
-            width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 30px solid white; z-index: 10; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
-        }
+        .wheel-idle { animation: idle 20s linear infinite; }
+        @keyframes idle { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .pointer { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 30px solid white; z-index: 20; }
+        
+        /* PREVIEW CARD */
+        .preview-card { background: #171a21; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; overflow: hidden; }
+        .header-bg { height: 80px; background: linear-gradient(to bottom, #4c6b22, #171a21); }
     </style>
 </head>
-<body class="pb-24 font-sans">
+<body class="pb-28">
 
-    <div class="p-6 flex justify-between items-center bg-[#121212] border-b border-white/5 sticky top-0 z-40">
-        <h1 class="text-xl font-black italic text-fuchsia-600 uppercase tracking-tighter">Socialize</h1>
-        <div class="flex items-center gap-4">
-            <span id="ui-points" class="text-yellow-500 font-bold text-sm tracking-widest">... SP</span>
-            <button id="btn-open-link" class="bg-fuchsia-600 text-[10px] font-black px-4 py-2 rounded-full uppercase tracking-widest hover:bg-fuchsia-500 active:scale-95 transition">Your Link</button>
+    <div class="p-6 flex justify-between items-center bg-[#0d0d0d] border-b border-white/5 sticky top-0 z-50">
+        <div>
+            <h1 class="text-xl font-black italic text-fuchsia-600 uppercase">Socialize</h1>
+            <p id="ui-points" class="text-yellow-500 font-bold text-[10px] tracking-widest">LOADING SP...</p>
+        </div>
+        <button id="btn-share" class="bg-fuchsia-600 text-[10px] font-black px-5 py-2.5 rounded-full uppercase tracking-widest active:scale-95 transition">Get Link</button>
+    </div>
+
+    <div id="modal-share" class="hidden fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-6 backdrop-blur-md">
+        <div class="bg-zinc-900 p-8 rounded-3xl border border-white/10 w-full max-w-sm text-center">
+            <h2 class="text-xl font-black italic mb-2 uppercase">Your Live URL</h2>
+            <p class="text-zinc-500 text-[10px] mb-6 uppercase tracking-widest">Share this with anyone</p>
+            <input type="text" id="share-url-input" readonly class="w-full bg-black border border-white/10 p-4 rounded-xl text-xs text-fuchsia-400 font-mono mb-6 text-center">
+            <button id="btn-close-share" class="w-full bg-white text-black font-black py-4 rounded-xl uppercase text-xs">Close</button>
         </div>
     </div>
 
-    <div id="link-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center backdrop-blur-sm px-4">
-        <div class="bg-[#171a21] border border-white/10 p-6 rounded-2xl w-full max-w-sm text-center shadow-2xl">
-            <h3 class="text-lg font-bold italic mb-4 uppercase text-fuchsia-500">Your Identity Link</h3>
-            <div class="bg-black/50 p-4 rounded-xl border border-white/5 mb-4 flex items-center justify-between">
-                <span id="short-link-text" class="text-zinc-300 text-xs font-mono tracking-wider overflow-hidden">socialize.me/u/...</span>
-                <span class="material-icons text-zinc-500 text-sm">content_copy</span>
-            </div>
-            <button id="btn-close-link" class="w-full bg-white text-black font-black py-3 rounded-xl uppercase text-xs active:scale-95 transition">Close</button>
-        </div>
-    </div>
-
-    <div class="p-6 max-w-md mx-auto mt-4">
+    <div class="p-6 max-w-md mx-auto">
         
-        <div id="sec-profile" class="app-section space-y-6 animate-in fade-in duration-300">
-            <h2 class="text-2xl font-black uppercase italic">Edit Identity</h2>
-            <div>
-                <label class="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Display Name</label>
-                <input type="text" id="input-name" class="w-full bg-zinc-900 border border-white/10 p-4 rounded-xl mt-2 text-white focus:border-fuchsia-600 outline-none">
+        <div id="sec-profile" class="app-sec space-y-8">
+            <div class="preview-card">
+                <div class="header-bg"></div>
+                <div class="px-6 pb-6 text-center">
+                    <img id="prev-img" src="" class="w-20 h-20 rounded-md border-4 border-[#171a21] mx-auto -mt-10 bg-black object-cover">
+                    <h3 id="prev-name" class="text-lg font-bold mt-2 flex items-center justify-center"></h3>
+                    <p class="text-blue-400 text-[9px] font-black uppercase tracking-tighter">Verified Member</p>
+                    <p id="prev-bio" class="text-zinc-500 text-xs mt-3 italic"></p>
+                </div>
             </div>
-            <div>
-                <label class="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Biography</label>
-                <textarea id="input-bio" class="w-full bg-zinc-900 border border-white/10 p-4 rounded-xl mt-2 text-white focus:border-fuchsia-600 outline-none" rows="3"></textarea>
+
+            <div class="space-y-4">
+                <input type="text" id="in-name" placeholder="Display Name" class="w-full bg-zinc-900/50 border border-white/5 p-4 rounded-xl outline-none focus:border-fuchsia-600 transition">
+                <textarea id="in-bio" placeholder="Short Bio..." class="w-full bg-zinc-900/50 border border-white/5 p-4 rounded-xl outline-none focus:border-fuchsia-600 transition" rows="3"></textarea>
+                <button id="btn-save" class="w-full bg-white text-black py-4 rounded-xl font-black uppercase tracking-widest active:scale-95 transition">Save Identity</button>
             </div>
-            <button id="btn-save" class="w-full bg-zinc-100 text-black py-4 rounded-xl font-black uppercase tracking-widest active:scale-95 transition hover:bg-white">Sync Data</button>
         </div>
 
-        <div id="sec-spin" class="app-section hidden text-center space-y-8 animate-in fade-in duration-300">
-            <h2 class="text-2xl font-black uppercase italic">Hourly Spin</h2>
+        <div id="sec-spin" class="app-sec hidden text-center space-y-6 pt-4">
             <div class="wheel-box">
-                <div class="wheel-pointer"></div>
-                <div id="the-wheel" class="wheel spin-slow"></div>
+                <div class="pointer"></div>
+                <div id="wheel-obj" class="wheel wheel-idle"></div>
             </div>
-            <p class="text-zinc-500 text-xs font-bold uppercase tracking-[0.2em]">Win exclusive points</p>
-            <button id="btn-spin" class="w-full bg-fuchsia-600 py-5 rounded-2xl font-black uppercase tracking-widest shadow-[0_0_20px_rgba(217,70,239,0.3)] active:scale-95 transition">Spin Wheel</button>
-        </div>
-
-        <div id="sec-shop" class="app-section hidden animate-in fade-in duration-300">
-            <h2 class="text-2xl font-black uppercase italic mb-6">Point Shop</h2>
-            <div class="grid grid-cols-2 gap-4">
-                <div class="bg-zinc-900 p-5 rounded-2xl border border-fuchsia-600/30 text-center relative overflow-hidden">
-                    <div class="absolute inset-0 bg-fuchsia-600/5"></div>
-                    <div class="w-12 h-12 bg-fuchsia-500/20 rounded-full mx-auto mb-3 border-2 border-fuchsia-500"></div>
-                    <p class="text-[10px] font-bold uppercase tracking-wider relative">Neon Frame</p>
-                    <button class="mt-4 text-[9px] bg-fuchsia-600 text-white font-bold px-4 py-2 rounded-full w-full uppercase tracking-widest relative">Buy: 500 SP</button>
-                </div>
-                <div class="bg-zinc-900 p-5 rounded-2xl border border-white/5 text-center opacity-60">
-                    <div class="w-12 h-12 bg-zinc-800 rounded-full mx-auto mb-3"></div>
-                    <p class="text-[10px] font-bold uppercase tracking-wider">Coming Soon</p>
-                    <button class="mt-4 text-[9px] bg-white/10 text-zinc-400 font-bold px-4 py-2 rounded-full w-full uppercase tracking-widest cursor-not-allowed">Locked</button>
+            <div class="bg-zinc-900/50 p-4 rounded-2xl border border-white/5">
+                <div class="flex justify-between text-[9px] font-black uppercase tracking-widest mb-2">
+                    <span class="text-fuchsia-500">Common: 50 SP</span>
+                    <span class="text-white">Rare: 250 SP</span>
+                    <span class="text-yellow-500 italic">Exotic: 5,000 SP (0.3%)</span>
                 </div>
             </div>
+            <button id="btn-spin-trigger" class="w-full bg-fuchsia-600 py-5 rounded-2xl font-black uppercase shadow-lg shadow-fuchsia-900/20">Spin Wheel</button>
         </div>
 
-        <div id="sec-settings" class="app-section hidden space-y-6 animate-in fade-in duration-300 pt-4">
-            <h2 class="text-2xl font-black uppercase italic">System</h2>
-            <div class="bg-zinc-900 p-4 rounded-xl border border-white/5 flex justify-between items-center">
-                <span class="text-xs font-bold uppercase tracking-widest text-zinc-400">Account ID</span>
-                <span id="ui-uid" class="text-[10px] text-zinc-600 font-mono">...</span>
+        <div id="sec-shop" class="app-sec hidden space-y-6">
+            <h2 class="text-2xl font-black italic uppercase">Shop</h2>
+            <div class="grid grid-cols-1 gap-4">
+                <div class="bg-zinc-900 p-5 rounded-2xl border border-white/5 flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 bg-blue-600/20 rounded flex items-center justify-center text-blue-500"><span class="material-icons">verified</span></div>
+                        <div>
+                            <p class="text-xs font-bold uppercase">Verified Badge</p>
+                            <p class="text-[9px] text-zinc-500 uppercase">Blue Checkmark</p>
+                        </div>
+                    </div>
+                    <button onclick="buyItem('verified', 1000)" class="bg-white/5 hover:bg-white/10 px-4 py-2 rounded-lg text-[10px] font-bold">1,000 SP</button>
+                </div>
+                <div class="bg-zinc-900 p-5 rounded-2xl border border-white/5 flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 bg-fuchsia-600/20 rounded flex items-center justify-center text-fuchsia-500"><span class="material-icons">palette</span></div>
+                        <div>
+                            <p class="text-xs font-bold uppercase">Neon Name</p>
+                            <p class="text-[9px] text-zinc-500 uppercase">Pink Glow Effect</p>
+                        </div>
+                    </div>
+                    <button onclick="buyItem('neon_name', 2500)" class="bg-white/5 hover:bg-white/10 px-4 py-2 rounded-lg text-[10px] font-bold">2,500 SP</button>
+                </div>
             </div>
-            <button id="btn-logout" class="w-full border-2 border-red-900/50 text-red-500 py-4 rounded-xl font-black uppercase tracking-widest hover:bg-red-900/20 active:scale-95 transition">Disconnect</button>
         </div>
 
     </div>
 
-    <div class="fixed bottom-0 left-0 right-0 bg-[#121212] border-t border-white/5 flex justify-around p-3 pb-8 z-40">
-        <button id="tab-profile" class="tab-btn tab-active text-fuchsia-500 flex flex-col items-center gap-1 w-1/4">
-            <span class="material-icons text-[22px]">person</span><span class="text-[8px] font-black uppercase tracking-widest">Profile</span>
+    <div class="fixed bottom-0 left-0 right-0 bg-[#0d0d0d] border-t border-white/5 flex justify-around p-4 pb-8 z-50">
+        <button id="nav-profile" class="tab-btn tab-active flex flex-col items-center gap-1 w-1/4">
+            <span class="material-icons">account_circle</span><span class="text-[8px] font-black uppercase">Profile</span>
         </button>
-        <button id="tab-spin" class="tab-btn text-zinc-600 flex flex-col items-center gap-1 w-1/4">
-            <span class="material-icons text-[22px]">casino</span><span class="text-[8px] font-black uppercase tracking-widest">Spin</span>
+        <button id="nav-spin" class="tab-btn text-zinc-600 flex flex-col items-center gap-1 w-1/4">
+            <span class="material-icons">casino</span><span class="text-[8px] font-black uppercase">Spin</span>
         </button>
-        <button id="tab-shop" class="tab-btn text-zinc-600 flex flex-col items-center gap-1 w-1/4">
-            <span class="material-icons text-[22px]">shopping_cart</span><span class="text-[8px] font-black uppercase tracking-widest">Shop</span>
+        <button id="nav-shop" class="tab-btn text-zinc-600 flex flex-col items-center gap-1 w-1/4">
+            <span class="material-icons">shopping_bag</span><span class="text-[8px] font-black uppercase">Shop</span>
         </button>
-        <button id="tab-settings" class="tab-btn text-zinc-600 flex flex-col items-center gap-1 w-1/4">
-            <span class="material-icons text-[22px]">settings</span><span class="text-[8px] font-black uppercase tracking-widest">Settings</span>
+        <button id="nav-logout" class="text-zinc-600 flex flex-col items-center gap-1 w-1/4">
+            <span class="material-icons">logout</span><span class="text-[8px] font-black uppercase">Exit</span>
         </button>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, updateDoc, increment, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCNl7BW60B6GrHrGx02QaiUbZU3Z3oYlXM",
@@ -132,100 +145,103 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // --- 1. TAB SWITCHING LOGIC ---
-        const tabs = ['profile', 'spin', 'shop', 'settings'];
-        tabs.forEach(tab => {
-            document.getElementById(`tab-${tab}`).addEventListener('click', (e) => {
-                // Hide all sections
-                document.querySelectorAll('.app-section').forEach(sec => sec.classList.add('hidden'));
-                // Reset all tabs
-                document.querySelectorAll('.tab-btn').forEach(btn => {
-                    btn.classList.remove('tab-active', 'text-fuchsia-500');
-                    btn.classList.add('text-zinc-600');
-                });
-                
-                // Show target section & highlight tab
-                document.getElementById(`sec-${tab}`).classList.remove('hidden');
-                const clickedBtn = e.currentTarget;
-                clickedBtn.classList.remove('text-zinc-600');
-                clickedBtn.classList.add('tab-active', 'text-fuchsia-500');
-            });
-        });
-
-        // --- 2. MODAL LOGIC (Your Link) ---
-        const modal = document.getElementById('link-modal');
-        document.getElementById('btn-open-link').addEventListener('click', () => modal.classList.remove('hidden'));
-        document.getElementById('btn-close-link').addEventListener('click', () => modal.classList.add('hidden'));
-
-        // --- 3. WHEEL LOGIC ---
-        const wheel = document.getElementById('the-wheel');
-        const spinBtn = document.getElementById('btn-spin');
-        
-        spinBtn.addEventListener('click', async () => {
+        // --- GLOBAL SHOP FUNCTION ---
+        window.buyItem = async (itemId, price) => {
             const user = auth.currentUser;
-            if (!user) return;
-            
             const userRef = doc(db, "users", user.uid);
             const snap = await getDoc(userRef);
-            const lastSpin = snap.data().lastSpin || 0;
-            
-            if (Date.now() - lastSpin < 3600000) {
-                alert("The wheel is resting. Come back in an hour.");
-                return;
-            }
+            const points = snap.data().points || 0;
+            const inventory = snap.data().inventory || [];
 
-            // Start the visual spin
-            wheel.classList.remove('spin-slow'); // Stop idle
-            const deg = Math.floor(3600 + Math.random() * 3600); // Massive spin
-            wheel.style.transform = `rotate(${deg}deg)`;
-            spinBtn.innerText = "SPINNING...";
-            spinBtn.disabled = true;
+            if (inventory.includes(itemId)) return alert("Already owned!");
+            if (points < price) return alert("Not enough SP!");
 
-            // Wait for CSS transition to finish (4s)
-            setTimeout(async () => {
-                const prize = Math.random() > 0.9 ? 500 : 50;
-                await updateDoc(userRef, { points: increment(prize), lastSpin: Date.now() });
-                alert(`🎰 BOOM! You won ${prize} SP!`);
-                location.reload(); // Refresh to update points UI & reset wheel
-            }, 4200);
-        });
-
-        // --- 4. FIREBASE DATA SYNC ---
-        onAuthStateChanged(auth, async (user) => {
-            if (!user) {
-                window.location.href = 'index.html'; // Kick out if not logged in
-                return;
-            }
-
-            // Fill User Data
-            document.getElementById('ui-uid').innerText = user.uid.substring(0, 10) + "...";
-            // Make the link look short and clean for the UI
-            document.getElementById('short-link-text').innerText = `socialize.me/u/${user.uid.substring(0, 6)}`;
-            
-            const userRef = doc(db, "users", user.uid);
-            const snap = await getDoc(userRef);
-            if (snap.exists()) {
-                const data = snap.data();
-                document.getElementById('input-name').value = data.name || "";
-                document.getElementById('input-bio').value = data.bio || "";
-                document.getElementById('ui-points').innerText = `${data.points || 0} SP`;
-            }
-
-            // Save Data
-            document.getElementById('btn-save').addEventListener('click', async () => {
-                await updateDoc(userRef, { 
-                    name: document.getElementById('input-name').value, 
-                    bio: document.getElementById('input-bio').value 
-                });
-                alert("Data Synced to Cloud. ✅");
+            await updateDoc(userRef, {
+                points: increment(-price),
+                inventory: arrayUnion(itemId)
             });
+            alert(`Purchased ${itemId}! Refreshing preview...`);
+            location.reload();
+        };
+
+        // --- NAVIGATION ---
+        const navs = {'nav-profile': 'sec-profile', 'nav-spin': 'sec-spin', 'nav-shop': 'sec-shop'};
+        Object.keys(navs).forEach(id => {
+            document.getElementById(id).onclick = (e) => {
+                document.querySelectorAll('.app-sec').forEach(s => s.classList.add('hidden'));
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('tab-active', 'text-fuchsia-500'));
+                document.getElementById(navs[id]).classList.remove('hidden');
+                e.currentTarget.classList.add('tab-active', 'text-fuchsia-500');
+            };
         });
 
-        // --- 5. LOGOUT ---
-        document.getElementById('btn-logout').addEventListener('click', () => {
-            signOut(auth).then(() => window.location.href = 'index.html');
+        // --- AUTH & DATA ---
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) return window.location.href = 'index.html';
+
+            const userRef = doc(db, "users", user.uid);
+            const snap = await getDoc(userRef);
+            const data = snap.data();
+
+            // Setup Share Modal
+            const fullUrl = `${window.location.origin}/profile.html?u=${user.uid}`;
+            document.getElementById('share-url-input').value = fullUrl;
+            document.getElementById('btn-share').onclick = () => document.getElementById('modal-share').classList.remove('hidden');
+            document.getElementById('btn-close-share').onclick = () => document.getElementById('modal-share').classList.add('hidden');
+
+            // Initial UI
+            document.getElementById('ui-points').innerText = `${data.points || 0} SP`;
+            document.getElementById('in-name').value = data.name || "";
+            document.getElementById('in-bio').value = data.bio || "";
+            
+            // Preview Updates
+            const updatePreview = () => {
+                document.getElementById('prev-name').innerHTML = document.getElementById('in-name').value + (data.inventory?.includes('verified') ? ' <span class="material-icons text-blue-500 text-sm ml-1">verified</span>' : '');
+                document.getElementById('prev-bio').innerText = document.getElementById('in-bio').value;
+                document.getElementById('prev-img').src = user.photoURL;
+                if(data.inventory?.includes('neon_name')) document.getElementById('prev-name').classList.add('text-fuchsia-500', 'drop-shadow-[0_0_5px_#d946ef]');
+            };
+            updatePreview();
+
+            // Save Function
+            document.getElementById('btn-save').onclick = async () => {
+                await updateDoc(userRef, { name: document.getElementById('in-name').value, bio: document.getElementById('in-bio').value });
+                alert("Identity Synced!");
+                updatePreview();
+            };
+
+            // SPIN LOGIC
+            document.getElementById('btn-spin-trigger').onclick = async () => {
+                const lastSpin = data.lastSpin || 0;
+                if (Date.now() - lastSpin < 3600000) return alert("Wheel on Cooldown (1hr)");
+
+                const wheel = document.getElementById('wheel-obj');
+                wheel.classList.remove('wheel-idle');
+                
+                const rand = Math.random();
+                let prize = 50; 
+                let extraRotation = 72; // Points to Common
+
+                if (rand < 0.003) { // 0.3% Chance
+                    prize = 5000;
+                    extraRotation = 324; // Points to Gold Exotic
+                } else if (rand < 0.2) {
+                    prize = 250;
+                    extraRotation = 216; // Points to Rare
+                }
+
+                const finalDeg = 3600 + extraRotation; // 10 spins + prize slice
+                wheel.style.transform = `rotate(${finalDeg}deg)`;
+                
+                setTimeout(async () => {
+                    await updateDoc(userRef, { points: increment(prize), lastSpin: Date.now() });
+                    alert(`REWARD: ${prize} SP!`);
+                    location.reload();
+                }, 5200);
+            };
         });
 
+        document.getElementById('nav-logout').onclick = () => signOut(auth).then(() => location.href='index.html');
     </script>
 </body>
 </html>
