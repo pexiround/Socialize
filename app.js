@@ -1,8 +1,9 @@
+// 1. Import Firebase modules using the CDN links (required for GitHub Pages)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10/app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10/firebase-auth.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10/firebase-firestore.js";
 
-// Your Firebase configuration from your screenshot
+// 2. Your specific Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyCNl7BW60B6GrHrGx02QaiUbZU3Z3oYlXM",
   authDomain: "socialize-614d2.firebaseapp.com",
@@ -13,74 +14,67 @@ const firebaseConfig = {
   measurementId: "G-Z5E41M8VCV"
 };
 
-// Initialize Firebase
+// 3. Initialize Firebase services
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
-// --- 1. LOGIN LOGIC (For index.html) ---
+---
+
+// 4. LOGIN LOGIC (For index.html)
 const loginBtn = document.getElementById('login-btn');
 if (loginBtn) {
     loginBtn.onclick = async () => {
         try {
-            await signInWithPopup(auth, provider);
-            window.location.href = 'editor.html'; // Go to editor after login
+            const result = await signInWithPopup(auth, provider);
+            console.log("Logged in as:", result.user.displayName);
+            // Redirect to the editor page after successful login
+            window.location.href = './editor.html';
         } catch (error) {
             console.error("Login Error:", error);
-            alert("Login failed. Make sure Google Auth is enabled in Firebase!");
+            alert("Login failed. Make sure 'pexiround.github.io' is in your Authorized Domains!");
         }
     };
 }
 
-// --- 2. EDITOR LOGIC (For editor.html) ---
+// 5. SAVE LOGIC (For editor.html)
 const saveBtn = document.getElementById('save-btn');
 if (saveBtn) {
-    // When the user saves their info
     saveBtn.onclick = async () => {
         const user = auth.currentUser;
-        if (user) {
-            const name = document.getElementById('edit-name').value;
-            const bio = document.getElementById('edit-bio').value;
-            
+        if (!user) {
+            alert("Please log in first!");
+            return;
+        }
+
+        const name = document.getElementById('edit-name').value;
+        const bio = document.getElementById('edit-bio').value;
+
+        try {
+            // Save data to Firestore under a folder called "users"
             await setDoc(doc(db, "users", user.uid), {
                 name: name,
                 bio: bio,
-                avatar: user.photoURL,
-                uid: user.uid
+                photo: user.photoURL,
+                uid: user.uid,
+                lastUpdated: new Date()
             });
-            
-            const shareLink = `${window.location.origin}${window.location.pathname.replace('editor.html', 'index.html')}?u=${user.uid}`;
-            document.getElementById('share-url').innerText = `Live at: ${shareLink}`;
+
+            // Show the shareable link section
+            const shareSection = document.getElementById('share-section');
+            const shareUrl = document.getElementById('share-url');
+            if (shareSection && shareUrl) {
+                shareSection.classList.remove('hidden');
+                // Create a link that points back to index.html with the user ID
+                const link = `${window.location.origin}/Socialize/index.html?u=${user.uid}`;
+                shareUrl.innerText = link;
+            }
+
             alert("Profile Socialized!");
+        } catch (error) {
+            console.error("Save Error:", error);
+            alert("Error saving profile. Check your Firestore Rules!");
         }
     };
-}
-
-// --- 3. DISPLAY LOGIC (For index.html profile view) ---
-const urlParams = new URLSearchParams(window.location.search);
-const profileId = urlParams.get('u');
-
-if (profileId) {
-    // Hide landing page, show profile
-    const landing = document.getElementById('landing');
-    const profile = document.getElementById('profile');
-    if (landing) landing.classList.add('hidden');
-    if (profile) profile.classList.remove('hidden');
-
-    // Fetch data from Firestore
-    const loadProfile = async () => {
-        const docRef = doc(db, "users", profileId);
-        const docSnap = await getDoc(docRef);
-
-        if (docSnap.exists()) {
-            const data = docSnap.data();
-            document.getElementById('p-name').innerText = data.name;
-            document.getElementById('p-bio').innerText = data.bio;
-            document.getElementById('p-img').src = data.avatar;
-        } else {
-            document.getElementById('p-name').innerText = "User not found";
-        }
-    };
-    loadProfile();
 }
