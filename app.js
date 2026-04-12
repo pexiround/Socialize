@@ -16,58 +16,22 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
-// --- 1. GLOBAL USER COUNTER (Home Page) ---
+// --- LIVE USER COUNTER ---
 async function loadUserCount() {
     const counterEl = document.getElementById('global-counter');
     if (counterEl) {
-        try {
-            const snapshot = await getDocs(collection(db, "users"));
-            counterEl.innerText = `${snapshot.size} PEOPLE SOCIALIZING`;
-        } catch (e) { counterEl.innerText = "READY TO SOCIALIZE"; }
+        const snapshot = await getDocs(collection(db, "users"));
+        counterEl.innerHTML = `<span class="relative flex h-2 w-2 mr-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span></span> ${snapshot.size} PEOPLE SOCIALIZING`;
     }
 }
 loadUserCount();
 
-// --- 2. AUTH OBSERVER (Editor Data Loading) ---
-onAuthStateChanged(auth, async (user) => {
-    if (user && window.location.pathname.includes('editor.html')) {
-        const docSnap = await getDoc(doc(db, "users", user.uid));
-        if (docSnap.exists()) {
-            const data = docSnap.data();
-            document.getElementById('edit-name').value = data.name || "";
-            document.getElementById('edit-bio').value = data.bio || "";
-            document.getElementById('theme-select').value = data.theme || "theme-midnight";
-            showLink(user.uid);
-        }
-    }
-});
-
-function showLink(uid) {
-    const section = document.getElementById('share-section');
-    if (section) {
-        section.classList.remove('hidden');
-        document.getElementById('share-url').innerText = `${window.location.origin}/Socialize/index.html?u=${uid}`;
-    }
-}
-
-// --- 3. LOGIN LOGIC ---
-const loginBtn = document.getElementById('login-btn');
-if (loginBtn) {
-    loginBtn.onclick = async () => {
-        try {
-            await signInWithPopup(auth, provider);
-            window.location.href = './editor.html';
-        } catch (e) { console.error(e); }
-    };
-}
-
-// --- 4. SAVE LOGIC (Unique Name + Theme + Views) ---
+// --- SAVE LOGIC ---
 const saveBtn = document.getElementById('save-btn');
 if (saveBtn) {
     saveBtn.onclick = async () => {
         const user = auth.currentUser;
-        if (!user) return alert("Please log in!");
-
+        if (!user) return alert("Login first!");
         const name = document.getElementById('edit-name').value.trim();
         const bio = document.getElementById('edit-bio').value;
         const theme = document.getElementById('theme-select').value;
@@ -78,23 +42,25 @@ if (saveBtn) {
             const snap = await getDocs(q);
             let taken = false;
             snap.forEach(d => { if(d.id !== user.uid) taken = true; });
+            if(taken) return alert("Name taken!");
 
-            if(taken) return alert("Name already taken! Choose another.");
-
+            // Default flags are false. You manually change them to true in Firebase Console!
             await setDoc(doc(db, "users", user.uid), {
                 name, bio, theme,
                 avatar: user.photoURL,
                 uid: user.uid,
-                updatedAt: new Date()
+                isVerified: false, 
+                isDeveloper: false,
+                isOwner: false
             }, { merge: true });
 
-            alert("Identity Synced!");
-            showLink(user.uid);
-        } catch (e) { alert("Save Error! Check Firestore Rules."); }
+            alert("Synced!");
+            location.reload(); 
+        } catch (e) { console.error(e); }
     };
 }
 
-// --- 5. PROFILE VIEWER ---
+// --- PROFILE VIEW (Centered & Badged) ---
 const params = new URLSearchParams(window.location.search);
 const uid = params.get('u');
 if (uid && document.getElementById('profile-view')) {
@@ -110,8 +76,24 @@ if (uid && document.getElementById('profile-view')) {
 
         document.body.className = data.theme || "theme-midnight";
         document.getElementById('profile-view').classList.remove('hidden');
-        document.getElementById('user-name').innerText = data.name;
+        
+        // Render Name + Badges
+        let badges = '';
+        if(data.isOwner) badges += '<span class="text-[10px] bg-fuchsia-600 text-white px-2 py-0.5 rounded-full ml-2">OWNER</span>';
+        if(data.isDeveloper) badges += '<span class="text-[10px] bg-blue-600 text-white px-2 py-0.5 rounded-full ml-2">DEV</span>';
+        if(data.isVerified) badges += '<span class="material-icons text-blue-400 text-sm ml-1">verified</span>';
+        
+        document.getElementById('user-name').innerHTML = data.name + badges;
         document.getElementById('user-bio').innerText = data.bio;
         document.getElementById('user-photo').src = data.avatar;
     }
+}
+
+// Login
+const loginBtn = document.getElementById('login-btn');
+if (loginBtn) {
+    loginBtn.onclick = async () => {
+        await signInWithPopup(auth, provider);
+        window.location.href = './editor.html';
+    };
 }
