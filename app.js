@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, collection, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, collection, getDocs, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyCNl7BW60B6GrHrGx02QaiUbZU3Z3oYlXM",
@@ -16,91 +16,128 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
-// --- TAB NAVIGATION ---
-const setupTabs = () => {
-    const tabs = {
-        'tab-btn-profile': 'cat-profile',
-        'tab-btn-spin': 'cat-spin',
-        'tab-btn-settings': 'cat-settings'
-    };
+const path = window.location.pathname;
 
-    Object.keys(tabs).forEach(btnId => {
-        const btn = document.getElementById(btnId);
-        if (btn) {
-            btn.onclick = () => {
-                document.querySelectorAll('.editor-category').forEach(el => el.classList.add('hidden'));
-                document.querySelectorAll('.tab-link').forEach(l => l.classList.remove('tab-active'));
-                document.getElementById(tabs[btnId]).classList.remove('hidden');
-                btn.classList.add('tab-active');
-            };
-        }
-    });
-};
-
-// --- THE WHEEL LOGIC ---
-const setupWheel = () => {
-    const spinBtn = document.getElementById('spin-trigger-btn');
-    const wheel = document.getElementById('main-wheel');
-
-    if (spinBtn) {
-        spinBtn.onclick = async () => {
-            const user = auth.currentUser;
-            const userRef = doc(db, "users", user.uid);
-            const snap = await getDoc(userRef);
-            const data = snap.data();
-
-            const lastSpin = data.lastSpin || 0;
-            if (Date.now() - lastSpin < 3600000) return alert("Wait for cooldown!");
-
-            // Animation
-            wheel.classList.remove('wheel-idle');
-            const degrees = Math.floor(5000 + Math.random() * 5000);
-            wheel.style.transform = `rotate(${degrees}deg)`;
-
-            spinBtn.disabled = true;
-            spinBtn.innerText = "SPINNING...";
-
-            setTimeout(async () => {
-                const prize = Math.random() > 0.9 ? 500 : 50;
-                await updateDoc(userRef, { points: increment(prize), lastSpin: Date.now() });
-                alert(`WINNER: +${prize} SP!`);
-                location.reload();
-            }, 4500);
-        };
+// ==========================================
+// 🏠 LANDING PAGE LOGIC (index.html)
+// ==========================================
+if (path.includes('index.html') || path.endsWith('/')) {
+    const loginBtn = document.getElementById('login-btn');
+    if (loginBtn) {
+        loginBtn.onclick = () => signInWithPopup(auth, provider).then(() => location.href = 'editor.html');
     }
-};
 
-// --- DATA SYNC ---
-onAuthStateChanged(auth, async (user) => {
-    if (user && window.location.pathname.includes('editor.html')) {
-        const snap = await getDoc(doc(db, "users", user.uid));
+    const counter = document.getElementById('global-counter');
+    if (counter) {
+        getDocs(collection(db, "users")).then(snap => {
+            counter.innerHTML = `<span class="relative flex h-2 w-2 mr-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span></span> ${snap.size} USERS ONLINE`;
+        });
+    }
+}
+
+// ==========================================
+// 🛠️ EDITOR LOGIC (editor.html)
+// ==========================================
+if (path.includes('editor.html')) {
+    // 1. Load User Data
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) return location.href = 'index.html';
+
+        const userRef = doc(db, "users", user.uid);
+        const snap = await getDoc(userRef);
+        
         if (snap.exists()) {
             const data = snap.data();
             document.getElementById('edit-name').value = data.name || "";
             document.getElementById('edit-bio').value = data.bio || "";
             document.getElementById('user-points').innerText = `${data.points || 0} SP`;
-            document.getElementById('view-link-btn').href = `index.html?u=${user.uid}`;
+            
+            // FIX: Your Link now points to profile.html
+            document.getElementById('view-link-btn').href = `profile.html?u=${user.uid}`;
+        } else {
+            await setDoc(userRef, { uid: user.uid, name: user.displayName, avatar: user.photoURL, points: 100, views: 0 });
+            location.reload();
         }
-        setupTabs();
-        setupWheel();
-    }
-});
+    });
 
-// Save & Auth
-const loginBtn = document.getElementById('login-btn');
-if (loginBtn) loginBtn.onclick = () => signInWithPopup(auth, provider).then(() => location.href = 'editor.html');
+    // 2. Tab Switcher
+    const tabs = { 'tab-profile': 'cat-profile', 'tab-spin': 'cat-spin', 'tab-settings': 'cat-settings' };
+    Object.keys(tabs).forEach(btnId => {
+        document.getElementById(btnId).onclick = (e) => {
+            document.querySelectorAll('.editor-category').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-link').forEach(l => l.classList.remove('tab-active', 'text-fuchsia-500'));
+            
+            document.getElementById(tabs[btnId]).classList.remove('hidden');
+            e.currentTarget.classList.add('tab-active', 'text-fuchsia-500');
+        };
+    });
 
-const saveBtn = document.getElementById('save-btn');
-if (saveBtn) {
-    saveBtn.onclick = async () => {
+    // 3. Save Button
+    document.getElementById('save-btn').onclick = async () => {
         const user = auth.currentUser;
         await updateDoc(doc(db, "users", user.uid), { 
             name: document.getElementById('edit-name').value, 
             bio: document.getElementById('edit-bio').value 
         });
-        alert("Synced!");
+        alert("Profile Synced! ✅");
+    };
+
+    // 4. Logout
+    document.getElementById('logout-btn').onclick = () => signOut(auth).then(() => location.href = 'index.html');
+
+    // 5. Spin The Wheel
+    const spinBtn = document.getElementById('spin-trigger-btn');
+    const wheel = document.getElementById('main-wheel');
+    spinBtn.onclick = async () => {
+        const user = auth.currentUser;
+        const userRef = doc(db, "users", user.uid);
+        const snap = await getDoc(userRef);
+        const lastSpin = snap.data().lastSpin || 0;
+
+        if (Date.now() - lastSpin < 3600000) return alert("Cooldown: Wait 1 hour!");
+
+        // Spin Visuals
+        wheel.classList.remove('wheel-idle');
+        const randomDeg = Math.floor(3600 + Math.random() * 3600); // Spins fast
+        wheel.style.transition = 'transform 4s cubic-bezier(0.2, 0.8, 0.2, 1)';
+        wheel.style.transform = `rotate(${randomDeg}deg)`;
+        spinBtn.innerText = "SPINNING...";
+        spinBtn.disabled = true;
+
+        setTimeout(async () => {
+            const prize = Math.random() > 0.9 ? 500 : 50;
+            await updateDoc(userRef, { points: increment(prize), lastSpin: Date.now() });
+            alert(`🎰 You won ${prize} SP!`);
+            location.reload();
+        }, 4500);
     };
 }
 
-const logoutBtn = document.getElementById('logout-btn');
-if (logoutBtn) logoutBtn.onclick = () => signOut(auth).then(() => location.href = 'index.html');
+// ==========================================
+// 👤 PUBLIC PROFILE LOGIC (profile.html)
+// ==========================================
+if (path.includes('profile.html')) {
+    const params = new URLSearchParams(window.location.search);
+    const profileId = params.get('u');
+    
+    if (profileId) {
+        const userRef = doc(db, "users", profileId);
+        getDoc(userRef).then(async (snap) => {
+            if (snap.exists()) {
+                const data = snap.data();
+                await updateDoc(userRef, { views: increment(1) });
+                
+                let badges = '';
+                if(data.isOwner) badges += '<span class="bg-fuchsia-600 text-[10px] px-2 py-0.5 rounded ml-2 shadow-[0_0_10px_#d946ef]">OWNER</span>';
+                if(data.isDeveloper) badges += '<span class="bg-blue-600 text-[10px] px-2 py-0.5 rounded ml-2">DEV</span>';
+                
+                document.getElementById('user-name').innerHTML = data.name + badges;
+                document.getElementById('user-bio').innerText = data.bio;
+                document.getElementById('user-photo').src = data.avatar;
+                document.getElementById('lvl-display').innerText = `LEVEL ${Math.floor((data.views || 0) / 10) + 1}`;
+            } else {
+                document.body.innerHTML = "<h1 class='text-white text-center mt-20'>Profile Not Found</h1>";
+            }
+        });
+    }
+}
