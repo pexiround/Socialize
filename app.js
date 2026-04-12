@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc, collection, getDocs, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -16,47 +16,81 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
-// --- CATEGORY SWITCHER ---
+// --- ATTACH TO WINDOW (Crucial for Tabs/Buttons to work) ---
 window.showCategory = (catId) => {
+    // Hide all
     document.querySelectorAll('.editor-category').forEach(el => el.classList.add('hidden'));
+    // Show selected
     document.getElementById(catId).classList.remove('hidden');
-    // Update button styles
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('text-fuchsia-500', 'border-fuchsia-500'));
+    console.log("Switching to:", catId);
 };
 
-// --- DATA HANDSHAKE ---
+window.logout = () => {
+    signOut(auth).then(() => { window.location.href = 'index.html'; });
+};
+
+window.spinWheel = async () => {
+    const user = auth.currentUser;
+    if (!user) return alert("Please log in first!");
+    
+    const userRef = doc(db, "users", user.uid);
+    const snap = await getDoc(userRef);
+    const data = snap.data();
+    
+    const lastSpin = data.lastSpin || 0;
+    const cooldown = 3600000; 
+    if (Date.now() - lastSpin < cooldown) {
+        const mins = Math.ceil((cooldown - (Date.now() - lastSpin)) / 60000);
+        return alert(`Cooldown! Wait ${mins} more minutes.`);
+    }
+
+    const prize = Math.random() > 0.9 ? 250 : 25;
+    await updateDoc(userRef, { points: increment(prize), lastSpin: Date.now() });
+    alert(`🎰 Winner! You got ${prize} SP!`);
+    location.reload();
+};
+
+// --- DATA SYNC ---
 onAuthStateChanged(auth, async (user) => {
     if (user && window.location.pathname.includes('editor.html')) {
-        const snap = await getDoc(doc(db, "users", user.uid));
+        const userRef = doc(db, "users", user.uid);
+        const snap = await getDoc(userRef);
+        
         if (snap.exists()) {
             const data = snap.data();
             document.getElementById('edit-name').value = data.name || "";
             document.getElementById('edit-bio').value = data.bio || "";
             document.getElementById('user-points').innerText = `${data.points || 0} SP`;
             
-            // Set the Link Button
+            // Fix "Your Link" Button
             const linkBtn = document.getElementById('view-link-btn');
-            if (linkBtn) linkBtn.href = `index.html?u=${user.uid}`;
+            if (linkBtn) {
+                linkBtn.href = `index.html?u=${user.uid}`;
+                linkBtn.onclick = () => console.log("Opening profile...");
+            }
         }
     }
 });
 
-// --- HOURLY SPIN ---
-window.spinWheel = async () => {
-    const user = auth.currentUser;
-    if (!user) return;
-    const userRef = doc(db, "users", user.uid);
-    const snap = await getDoc(userRef);
-    const lastSpin = snap.data().lastSpin || 0;
-
-    if (Date.now() - lastSpin < 3600000) return alert("Wait for the next hour!");
-
-    const prize = Math.random() > 0.9 ? 100 : 20;
-    await updateDoc(userRef, { points: increment(prize), lastSpin: Date.now() });
-    alert(`Won ${prize} SP!`);
-    location.reload();
-};
-
-// Login Logic
+// Login
 const loginBtn = document.getElementById('login-btn');
-if (loginBtn) loginBtn.onclick = () => signInWithPopup(auth, provider).then(() => window.location.href = './editor.html');
+if (loginBtn) {
+    loginBtn.onclick = () => {
+        signInWithPopup(auth, provider).then(() => {
+            window.location.href = 'editor.html';
+        });
+    };
+}
+
+// Save Profile
+const saveBtn = document.getElementById('save-btn');
+if (saveBtn) {
+    saveBtn.onclick = async () => {
+        const user = auth.currentUser;
+        if (!user) return;
+        const name = document.getElementById('edit-name').value;
+        const bio = document.getElementById('edit-bio').value;
+        await updateDoc(doc(db, "users", user.uid), { name, bio });
+        alert("Cloud Synced! ✅");
+    };
+}
