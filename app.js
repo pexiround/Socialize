@@ -16,74 +16,78 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
-// --- AUTO-LOAD DATA FOR MANAGING PROFILE ---
+// --- PROFILE LINK HELPER ---
+function displayShareLink(uid) {
+    const section = document.getElementById('share-section');
+    const urlText = document.getElementById('share-url');
+    if (section && urlText) {
+        section.classList.remove('hidden');
+        const link = `${window.location.origin}/Socialize/index.html?u=${uid}`;
+        urlText.innerText = link;
+    }
+}
+
+// --- AUTH OBSERVER (For Managing Profile) ---
 onAuthStateChanged(auth, async (user) => {
     if (user && window.location.pathname.includes('editor.html')) {
-        const docSnap = await getDoc(doc(db, "users", user.uid));
+        // If we're in the editor, try to fetch existing data
+        const docRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(docRef);
+        
         if (docSnap.exists()) {
             const data = docSnap.data();
-            // Fill the boxes with your saved info so you can edit it
             document.getElementById('edit-name').value = data.name || "";
             document.getElementById('edit-bio').value = data.bio || "";
-            
-            // Show your link immediately since you already have one
-            showLink(user.uid);
+            displayShareLink(user.uid);
         }
     }
 });
 
-function showLink(uid) {
-    const shareSection = document.getElementById('share-section');
-    const shareUrl = document.getElementById('share-url');
-    if (shareSection && shareUrl) {
-        shareSection.classList.remove('hidden');
-        shareUrl.innerText = `${window.location.origin}/Socialize/index.html?u=${uid}`;
-    }
-}
-
-// --- LOGIN LOGIC ---
+// --- LOGIN ---
 const loginBtn = document.getElementById('login-btn');
 if (loginBtn) {
     loginBtn.onclick = async () => {
         try {
             await signInWithPopup(auth, provider);
             window.location.href = './editor.html';
-        } catch (err) { console.error(err); }
+        } catch (e) { console.error(e); }
     };
 }
 
-// --- SAVE / UPDATE LOGIC ---
+// --- SAVE / UPDATE ---
 const saveBtn = document.getElementById('save-btn');
 if (saveBtn) {
     saveBtn.onclick = async () => {
         const user = auth.currentUser;
-        if (!user) return alert("Login first!");
+        if (!user) return alert("Please log in again!");
 
-        const nameInput = document.getElementById('edit-name').value;
-        const bioInput = document.getElementById('edit-bio').value;
+        const name = document.getElementById('edit-name').value;
+        const bio = document.getElementById('edit-bio').value;
 
         try {
             await setDoc(doc(db, "users", user.uid), {
-                name: nameInput,
-                bio: bioInput,
+                name: name,
+                bio: bio,
                 avatar: user.photoURL,
                 uid: user.uid
             });
-            showLink(user.uid);
-            alert("Profile Updated!");
+            displayShareLink(user.uid);
+            alert("Profile Saved!");
         } catch (e) {
-            alert("Save failed! Check Firestore Rules.");
+            console.error(e);
+            alert("Save failed! Double-check your Firestore Rules.");
         }
     };
 }
 
-// --- VIEW PROFILE LOGIC ---
-const params = new URLSearchParams(window.location.search);
-const uid = params.get('u');
-if (uid && document.getElementById('profile-view')) {
+// --- PROFILE VIEWER ---
+const urlParams = new URLSearchParams(window.location.search);
+const profileId = urlParams.get('u');
+if (profileId && document.getElementById('profile-view')) {
     const landing = document.getElementById('landing-view');
     if (landing) landing.style.display = 'none';
-    const docSnap = await getDoc(doc(db, "users", uid));
+
+    const docSnap = await getDoc(doc(db, "users", profileId));
     if (docSnap.exists()) {
         const data = docSnap.data();
         document.getElementById('profile-view').classList.remove('hidden');
