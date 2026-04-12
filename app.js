@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCNl7BW60B6GrHrGx02QaiUbZU3Z3oYlXM",
@@ -16,29 +16,25 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
-// --- PROFILE LINK HELPER ---
-function displayShareLink(uid) {
+// --- HELPER: SHOW LINK ---
+function displayLink(uid) {
     const section = document.getElementById('share-section');
-    const urlText = document.getElementById('share-url');
-    if (section && urlText) {
+    const urlBox = document.getElementById('share-url');
+    if (section && urlBox) {
         section.classList.remove('hidden');
-        const link = `${window.location.origin}/Socialize/index.html?u=${uid}`;
-        urlText.innerText = link;
+        urlBox.innerText = `${window.location.origin}/Socialize/index.html?u=${uid}`;
     }
 }
 
-// --- AUTH OBSERVER (For Managing Profile) ---
+// --- AUTH STATE (Load existing data) ---
 onAuthStateChanged(auth, async (user) => {
     if (user && window.location.pathname.includes('editor.html')) {
-        // If we're in the editor, try to fetch existing data
-        const docRef = doc(db, "users", user.uid);
-        const docSnap = await getDoc(docRef);
-        
+        const docSnap = await getDoc(doc(db, "users", user.uid));
         if (docSnap.exists()) {
             const data = docSnap.data();
             document.getElementById('edit-name').value = data.name || "";
             document.getElementById('edit-bio').value = data.bio || "";
-            displayShareLink(user.uid);
+            displayLink(user.uid);
         }
     }
 });
@@ -54,45 +50,63 @@ if (loginBtn) {
     };
 }
 
-// --- SAVE / UPDATE ---
+// --- SAVE (With Unique Name Check) ---
 const saveBtn = document.getElementById('save-btn');
 if (saveBtn) {
     saveBtn.onclick = async () => {
         const user = auth.currentUser;
-        if (!user) return alert("Please log in again!");
+        if (!user) return alert("Please login first!");
 
-        const name = document.getElementById('edit-name').value;
-        const bio = document.getElementById('edit-bio').value;
+        const chosenName = document.getElementById('edit-name').value.trim();
+        const chosenBio = document.getElementById('edit-bio').value;
+
+        if (chosenName.length < 2) return alert("Name too short!");
 
         try {
+            // 1. Check if name is taken by someone else
+            const nameQuery = query(collection(db, "users"), where("name", "==", chosenName));
+            const querySnapshot = await getDocs(nameQuery);
+            
+            let isTaken = false;
+            querySnapshot.forEach((doc) => {
+                if (doc.id !== user.uid) isTaken = true;
+            });
+
+            if (isTaken) {
+                alert("That name is already taken! Try another one.");
+                return;
+            }
+
+            // 2. Save the data
             await setDoc(doc(db, "users", user.uid), {
-                name: name,
-                bio: bio,
-                avatar: user.photoURL,
+                name: chosenName,
+                bio: chosenBio,
+                avatar: user.photoURL, // Uses your Google Profile Picture
                 uid: user.uid
             });
-            displayShareLink(user.uid);
-            alert("Profile Saved!");
+
+            displayLink(user.uid);
+            alert("Profile Socialized!");
         } catch (e) {
             console.error(e);
-            alert("Save failed! Double-check your Firestore Rules.");
+            alert("Error saving. Check Firestore Rules!");
         }
     };
 }
 
-// --- PROFILE VIEWER ---
-const urlParams = new URLSearchParams(window.location.search);
-const profileId = urlParams.get('u');
-if (profileId && document.getElementById('profile-view')) {
+// --- PROFILE VIEW ---
+const params = new URLSearchParams(window.location.search);
+const uid = params.get('u');
+if (uid && document.getElementById('profile-view')) {
     const landing = document.getElementById('landing-view');
     if (landing) landing.style.display = 'none';
 
-    const docSnap = await getDoc(doc(db, "users", profileId));
+    const docSnap = await getDoc(doc(db, "users", uid));
     if (docSnap.exists()) {
         const data = docSnap.data();
         document.getElementById('profile-view').classList.remove('hidden');
         document.getElementById('user-name').innerText = data.name;
         document.getElementById('user-bio').innerText = data.bio;
-        document.getElementById('user-photo').src = data.avatar;
+        document.getElementById('user-photo').src = data.avatar || "https://via.placeholder.com/150";
     }
 }
