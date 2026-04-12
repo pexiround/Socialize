@@ -3,33 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zapcz AI | Privacy First</title>
+    <title>VOID-OS | pexiround</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Courier New', Courier, monospace; }
+        .cursor { display: inline-block; width: 10px; height: 20px; background: #00ff00; animation: blink 1s infinite; }
+        @keyframes blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
+    </style>
 </head>
-<body class="bg-zinc-950 text-zinc-200 min-h-screen flex flex-col p-4 md:p-8">
+<body class="bg-black text-green-500 p-4 md:p-10 min-h-screen">
 
-    <header class="max-w-3xl mx-auto w-full mb-8">
-        <h1 class="text-2xl font-bold text-white">Zapcz AI</h1>
-        <p class="text-zinc-500 text-sm">On-device. No logs. No questions.</p>
-        <div id="status" class="mt-4 p-3 bg-zinc-900 rounded-lg text-xs font-mono text-zinc-400">
-            Initializing WebGPU...
+    <div id="terminal" class="max-w-4xl mx-auto">
+        <div class="mb-4">
+            <pre class="text-[10px] md:text-sm leading-tight text-green-800">
+ ██╗   ██╗ ██████╗ ██╗██████╗ 
+ ██║   ██║██╔═══██╗██║██╔══██╗
+ ██║   ██║██║   ██║██║██║  ██║
+ ╚██╗ ██╔╝██║   ██║██║██║  ██║
+  ╚████╔╝ ╚██████╔╝██║██████╔╝
+   ╚═══╝   ╚═════╝ ╚═╝╚═════╝ 
+ v1.0.4 | SYSTEM: ONLINE | PRIVACY: MAX</pre>
         </div>
-    </header>
 
-    <main class="max-w-3xl mx-auto w-full flex-1 flex flex-col gap-4">
-        <div id="chat-box" class="flex-1 overflow-y-auto space-y-4 mb-4 border border-zinc-800 p-4 rounded-xl bg-zinc-900/50">
-            </div>
-
-        <div class="relative">
-            <textarea id="user-input" rows="3" 
-                class="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-4 focus:outline-none focus:ring-2 focus:ring-white/20 transition resize-none"
-                placeholder="Make me something..."></textarea>
-            <button id="send-btn" class="absolute bottom-4 right-4 bg-white text-black px-4 py-2 rounded-lg font-bold hover:bg-zinc-200 disabled:opacity-50">
-                Generate
-            </button>
+        <div id="output" class="space-y-2 mb-4">
+            <div>> SYSTEM INITIALIZED...</div>
+            <div>> WELCOME TO THE VOID. TYPE 'HELP' TO BEGIN.</div>
         </div>
-    </main>
 
-    <script type="module" src="main.js"></script>
+        <div class="flex">
+            <span class="mr-2">></span>
+            <input id="input" type="text" autofocus 
+                class="bg-transparent border-none outline-none text-green-500 flex-1 uppercase">
+            <span class="cursor"></span>
+        </div>
+    </div>
+
+    <script src="main.js"></script>
 </body>
 </html>
