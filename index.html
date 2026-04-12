@@ -3,71 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Socialize Profile</title>
+    <title>Socialize | Your Digital Identity</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body {
-            background: linear-gradient(45deg, #0f0c29, #302b63, #24243e);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            font-family: 'Inter', sans-serif;
-        }
-        .glass {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-        }
-        .link-card:hover {
-            background: rgba(255, 255, 255, 0.15);
-            transform: translateY(-3px);
-            transition: all 0.3s ease;
-        }
+        body { background: #050505; color: white; font-family: sans-serif; }
+        .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
     </style>
 </head>
-<body class="p-6">
+<body class="min-h-screen flex items-center justify-center">
 
-    <div class="glass max-w-md w-full p-8 text-center shadow-2xl">
-        <div id="avatar-container" class="mb-6">
-            <img id="profile-pic" src="" class="w-24 h-24 rounded-full mx-auto border-2 border-fuchsia-500 p-1 shadow-lg shadow-fuchsia-500/20">
-        </div>
-        
-        <h1 id="name" class="text-3xl font-black tracking-tight mb-2 uppercase italic"></h1>
-        <p id="bio" class="text-zinc-400 text-sm mb-8 leading-relaxed"></p>
-
-        <div id="links" class="space-y-4">
-            </div>
-
-        <footer class="mt-10 pt-6 border-t border-white/10">
-            <p class="text-[10px] text-zinc-500 tracking-widest uppercase">Created with Socialize</p>
-        </footer>
+    <div id="landing" class="text-center p-6">
+        <h1 class="text-7xl font-black italic tracking-tighter text-fuchsia-600 mb-4">SOCIALIZE</h1>
+        <p class="text-zinc-400 mb-8">Create your custom link profile in seconds.</p>
+        <button id="login-btn" class="bg-white text-black px-10 py-4 rounded-full font-bold hover:bg-fuchsia-500 transition">
+            MAKE YOUR PROFILE
+        </button>
     </div>
 
-    <script type="module">
-        import { config } from './config.js';
+    <div id="profile" class="hidden w-full max-w-md p-8 text-center">
+        <img id="p-img" src="" class="w-24 h-24 rounded-full mx-auto mb-4 border-2 border-fuchsia-500">
+        <h2 id="p-name" class="text-3xl font-bold mb-2"></h2>
+        <p id="p-bio" class="text-zinc-400 mb-8"></p>
+        <div id="p-links" class="space-y-4"></div>
+    </div>
 
-        // Set Profile Info
-        document.getElementById('profile-pic').src = config.avatar;
-        document.getElementById('name').innerText = config.name;
-        document.getElementById('bio').innerText = config.bio;
-        document.title = `${config.name} | Socialize`;
-
-        // Generate Links
-        const container = document.getElementById('links');
-        config.links.forEach(link => {
-            const a = document.createElement('a');
-            a.href = link.url;
-            a.target = "_blank";
-            a.className = "link-card block w-full p-4 glass font-bold text-sm tracking-wide flex justify-between items-center px-6";
-            a.innerHTML = `
-                <span>${link.label}</span>
-                <span class="text-fuchsia-500">→</span>
-            `;
-            container.appendChild(a);
-        });
-    </script>
+    <script type="module" src="app.js"></script>
 </body>
 </html>
