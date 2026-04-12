@@ -8,11 +8,11 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
         :root { --bg: #080808; --card: #121212; --text: #ffffff; --border: rgba(255,255,255,0.1); }
-        .light-mode { --bg: #f4f4f5; --card: #ffffff; --text: #09090b; --border: rgba(0,0,0,0.1); }
-        body { background: var(--bg); color: var(--text); transition: all 0.3s ease; min-height: 100vh; font-family: 'Inter', sans-serif; }
+        body { background: var(--bg); color: var(--text); min-height: 100vh; font-family: 'Inter', sans-serif; overflow-x: hidden; }
         .app-card { background: var(--card); border: 1px solid var(--border); }
         .tab-active { color: #d946ef !important; border-top: 2px solid #d946ef; }
         .wheel-inner { border-radius: 50%; border: 8px solid var(--border); transition: transform 5s cubic-bezier(0.1, 0.8, 0.1, 1); }
+        
         /* FRAMES */
         .frame-none { border: 4px solid transparent; }
         .frame-neon { border: 4px solid #d946ef; box-shadow: 0 0 20px #d946ef; }
@@ -36,18 +36,27 @@
             <div id="prev-frame-target" class="relative w-28 h-28 mx-auto mb-4 rounded-xl overflow-hidden frame-none">
                 <img id="prev-img" src="" class="w-full h-full object-cover">
             </div>
-            <h3 id="prev-name" class="text-2xl font-bold italic"></h3>
+            <h3 id="prev-name" class="text-2xl font-bold italic flex justify-center items-center gap-1"></h3>
             <p id="prev-title" class="text-[10px] font-black uppercase tracking-[0.3em] text-fuchsia-500 mt-2"></p>
         </div>
 
-        <div id="sec-profile" class="app-sec space-y-4">
-            <input type="text" id="in-name" placeholder="Name" class="w-full bg-black/20 border border-white/10 p-4 rounded-2xl outline-none">
-            <textarea id="in-bio" placeholder="Bio" class="w-full bg-black/20 border border-white/10 p-4 rounded-2xl outline-none" rows="2"></textarea>
+        <div id="sec-profile" class="app-sec space-y-6">
+            <div class="space-y-2">
+                <input type="text" id="in-name" placeholder="Name" class="w-full bg-black/20 border border-white/10 p-4 rounded-2xl outline-none">
+                <textarea id="in-bio" placeholder="Bio" class="w-full bg-black/20 border border-white/10 p-4 rounded-2xl outline-none" rows="2"></textarea>
+            </div>
             
-            <h2 class="text-[10px] font-bold uppercase text-zinc-500">Inventory</h2>
-            <div id="inventory-list" class="grid grid-cols-2 gap-2"></div>
-            
-            <button id="btn-save" class="w-full bg-white text-black py-4 rounded-2xl font-black uppercase">Save</button>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <h2 class="text-[9px] font-black uppercase text-zinc-500 mb-2">Titles</h2>
+                    <div id="inv-titles" class="space-y-2"></div>
+                </div>
+                <div>
+                    <h2 class="text-[9px] font-black uppercase text-zinc-500 mb-2">Frames</h2>
+                    <div id="inv-frames" class="space-y-2"></div>
+                </div>
+            </div>
+            <button id="btn-save" class="w-full bg-white text-black py-4 rounded-2xl font-black uppercase">Sync to Cloud</button>
         </div>
 
         <div id="sec-spin" class="app-sec hidden text-center space-y-6">
@@ -58,35 +67,35 @@
             <button id="btn-spin" class="w-full bg-fuchsia-600 py-5 rounded-2xl font-black uppercase">Spin (100 SP)</button>
         </div>
 
-        <div id="sec-shop" class="app-sec hidden space-y-3">
-            <h2 class="text-xl font-black uppercase italic mb-4">Cosmetic Shop</h2>
-            <div id="shop-items" class="space-y-2"></div>
+        <div id="sec-shop" class="app-sec hidden space-y-6">
+            <h2 class="text-xl font-black uppercase italic">The Shop</h2>
+            <div id="shop-list" class="space-y-3"></div>
         </div>
 
-        <div id="sec-referral" class="app-sec hidden space-y-4">
-            <h2 class="text-xl font-black uppercase italic">Referrals</h2>
-            <div class="app-card p-6 rounded-2xl text-center">
-                <p class="text-xs text-zinc-500 mb-2 uppercase font-bold">Your Referral Code</p>
+        <div id="sec-settings" class="app-sec hidden space-y-6">
+            <div class="app-card p-6 rounded-2xl space-y-4">
+                <p class="text-[10px] font-bold uppercase text-zinc-500">Your Referral Code</p>
                 <p id="my-ref-code" class="text-2xl font-black tracking-widest text-fuchsia-500">----</p>
+                <div class="pt-4 border-t border-white/5 space-y-2">
+                    <p class="text-[9px] font-bold uppercase text-zinc-500">Redeem Code</p>
+                    <input type="text" id="in-ref-redeem" class="w-full bg-black/40 border border-white/10 p-3 rounded-xl text-xs outline-none">
+                    <button id="btn-redeem" class="w-full bg-zinc-800 py-3 rounded-xl text-[10px] font-black uppercase">Claim 1000 SP</button>
+                </div>
             </div>
-            <div class="space-y-2">
-                <p class="text-[10px] font-bold text-zinc-500 uppercase">Redeem a Code (+1000 SP)</p>
-                <input type="text" id="in-ref-redeem" placeholder="Enter Code" class="w-full bg-black/20 border border-white/10 p-4 rounded-2xl outline-none">
-                <button id="btn-redeem" class="w-full bg-zinc-100 text-black py-4 rounded-2xl font-black uppercase">Claim Points</button>
-            </div>
+            <button id="btn-logout" class="w-full p-4 rounded-xl bg-red-950/20 text-red-500 font-bold uppercase text-[10px] border border-red-900/30">Logout</button>
         </div>
     </div>
 
     <div class="fixed bottom-0 left-0 right-0 app-card border-t flex justify-around p-4 pb-10 z-50">
         <button id="nav-profile" class="tab-link tab-active flex flex-col items-center"><span class="material-icons">person</span></button>
-        <button id="nav-spin" class="tab-link text-zinc-500 flex flex-col items-center"><span class="material-icons">casino</span></button>
+        <button id="nav-spin" class="tab-link text-zinc-600 flex flex-col items-center"><span class="material-icons">casino</span></button>
         <button id="nav-shop" class="tab-link text-zinc-600 flex flex-col items-center"><span class="material-icons">shopping_bag</span></button>
-        <button id="nav-referral" class="tab-link text-zinc-600 flex flex-col items-center"><span class="material-icons">group_add</span></button>
+        <button id="nav-settings" class="tab-link text-zinc-600 flex flex-col items-center"><span class="material-icons">settings</span></button>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, updateDoc, increment, arrayUnion, setDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyCNl7BW60B6GrHrGx02QaiUbZU3Z3oYlXM", authDomain: "socialize-614d2.firebaseapp.com", projectId: "socialize-614d2", storageBucket: "socialize-614d2.firebasestorage.app", messagingSenderId: "506436447388", appId: "1:506436447388:web:c8d876b69ed57048981159" };
@@ -99,9 +108,9 @@
             { id: 'frame-gold', name: 'Royal Gold', price: 2500, type: 'frame' },
             { id: 'frame-emerald', name: 'Emerald', price: 1500, type: 'frame' },
             { id: 'frame-void', name: 'Void Walker', price: 4000, type: 'frame' },
-            { id: 'title-founder', name: 'Founder', price: 5000, type: 'title' },
-            { id: 'title-verified', name: 'Verified', price: 1000, type: 'title' },
-            { id: 'title-rich', name: 'The 1%', price: 10000, type: 'title' }
+            { id: 'title-verified', name: 'Verified Badge', price: 1000, type: 'title' },
+            { id: 'title-rich', name: 'The 1%', price: 10000, type: 'title' },
+            { id: 'title-founder', name: 'Founder', price: 999999, type: 'title', locked: true }
         ];
 
         onAuthStateChanged(auth, async (user) => {
@@ -111,7 +120,7 @@
             const sync = async () => {
                 const snap = await getDoc(userRef);
                 if(!snap.exists()) {
-                    await setDoc(userRef, { points: 500, inventory: [], name: user.displayName, refCode: user.uid.substring(0,6).toUpperCase() });
+                    await setDoc(userRef, { points: 500, inventory: [], name: user.displayName, refCode: Math.random().toString(36).substring(2,8).toUpperCase() });
                     return location.reload();
                 }
                 const d = snap.data();
@@ -119,16 +128,18 @@
                 document.getElementById('in-name').value = d.name || "";
                 document.getElementById('in-bio').value = d.bio || "";
                 document.getElementById('my-ref-code').innerText = d.refCode;
-                document.getElementById('prev-name').innerText = d.name || "User";
+
+                // Preview
+                document.getElementById('prev-name').innerHTML = (d.name || "User") + (d.isVerified ? ' <span class="material-icons text-blue-500 text-sm">verified</span>' : '');
                 document.getElementById('prev-img').src = user.photoURL;
                 document.getElementById('prev-frame-target').className = `relative w-28 h-28 mx-auto mb-4 rounded-xl overflow-hidden ${d.equippedFrame || 'frame-none'}`;
-                document.getElementById('prev-title').innerText = d.equippedTitle?.replace('title-', '').toUpperCase() || "";
+                document.getElementById('prev-title').innerText = d.equippedTitle?.split('-')[1]?.toUpperCase() || "";
 
-                // Shop (One-time buy filter)
-                const shopDiv = document.getElementById('shop-items');
-                shopDiv.innerHTML = "";
+                // Shop
+                const shopList = document.getElementById('shop-list');
+                shopList.innerHTML = "";
                 ITEMS.forEach(item => {
-                    if(d.inventory?.includes(item.id)) return;
+                    if(d.inventory?.includes(item.id) || item.locked) return;
                     const row = document.createElement('div');
                     row.className = "app-card p-4 rounded-2xl flex justify-between items-center";
                     row.innerHTML = `<span class="text-xs font-bold uppercase">${item.name}</span> <button class="bg-fuchsia-600 px-4 py-2 rounded-xl text-[10px] font-black">${item.price} SP</button>`;
@@ -137,22 +148,25 @@
                         await updateDoc(userRef, { points: increment(-item.price), inventory: arrayUnion(item.id) });
                         sync();
                     };
-                    shopDiv.appendChild(row);
+                    shopList.appendChild(row);
                 });
 
-                // Inventory
-                const invDiv = document.getElementById('inventory-list');
-                invDiv.innerHTML = "";
+                // Inventory Divided
+                const tDiv = document.getElementById('inv-titles');
+                const fDiv = document.getElementById('inv-frames');
+                tDiv.innerHTML = ""; fDiv.innerHTML = "";
+                
                 (d.inventory || []).forEach(id => {
-                    const b = document.createElement('button');
-                    b.className = "p-3 bg-white/5 border border-white/10 rounded-xl text-[8px] font-black uppercase";
-                    b.innerText = id.split('-')[1];
-                    b.onclick = async () => {
+                    const btn = document.createElement('button');
+                    btn.className = "w-full p-3 bg-white/5 rounded-xl text-[8px] font-bold uppercase text-left";
+                    btn.innerText = id.split('-')[1];
+                    btn.onclick = async () => {
                         const key = id.includes('frame') ? 'equippedFrame' : 'equippedTitle';
                         await updateDoc(userRef, { [key]: id });
                         sync();
                     };
-                    invDiv.appendChild(b);
+                    if(id.includes('title')) tDiv.appendChild(btn);
+                    else fDiv.appendChild(btn);
                 });
             };
             sync();
@@ -167,23 +181,19 @@
                 else if(rand < 0.2) { prize = 250; deg = 3600 + 225; }
                 wheel.style.transform = `rotate(${deg}deg)`;
                 await updateDoc(userRef, { points: increment(-100) });
-                setTimeout(async () => { await updateDoc(userRef, { points: increment(prize) }); sync(); alert("Won " + prize); }, 5200);
+                setTimeout(async () => { await updateDoc(userRef, { points: increment(prize) }); sync(); }, 5200);
             };
 
             document.getElementById('btn-redeem').onclick = async () => {
                 const code = document.getElementById('in-ref-redeem').value.toUpperCase();
                 const d = (await getDoc(userRef)).data();
-                if(d.hasRedeemed) return alert("Already redeemed a code!");
-                if(code === d.refCode) return alert("Can't use your own code!");
-                
+                if(d.hasRedeemed) return alert("Already used a code");
                 const q = query(collection(db, "users"), where("refCode", "==", code));
                 const snap = await getDocs(q);
-                if(snap.empty) return alert("Invalid Code");
-                
+                if(snap.empty || code === d.refCode) return alert("Invalid Code");
                 await updateDoc(userRef, { points: increment(1000), hasRedeemed: true });
                 await updateDoc(doc(db, "users", snap.docs[0].id), { points: increment(1000) });
-                alert("Redeemed! +1000 SP each!");
-                sync();
+                alert("Redeemed!"); sync();
             };
 
             document.getElementById('btn-save').onclick = async () => {
@@ -192,11 +202,10 @@
             };
 
             document.getElementById('btn-link').onclick = () => {
-                const url = window.location.href.replace('editor.html', 'profile.html') + "?u=" + user.uid;
-                prompt("Share link:", url);
+                prompt("Share link:", window.location.href.replace('editor.html', 'profile.html') + "?u=" + user.uid);
             };
 
-            const navs = {'nav-profile':'sec-profile', 'nav-spin':'sec-spin', 'nav-shop':'sec-shop', 'nav-referral':'sec-referral'};
+            const navs = {'nav-profile':'sec-profile', 'nav-spin':'sec-spin', 'nav-shop':'sec-shop', 'nav-settings':'sec-settings'};
             Object.keys(navs).forEach(k => {
                 document.getElementById(k).onclick = () => {
                     document.querySelectorAll('.app-sec').forEach(s => s.classList.add('hidden'));
@@ -205,6 +214,7 @@
                     document.getElementById(k).classList.add('tab-active');
                 };
             });
+            document.getElementById('btn-logout').onclick = () => signOut(auth);
         });
     </script>
 </body>
