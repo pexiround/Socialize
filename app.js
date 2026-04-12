@@ -17,7 +17,6 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
-// --- LOGIN LOGIC ---
 const loginBtn = document.getElementById('login-btn');
 if (loginBtn) {
     loginBtn.onclick = async () => {
@@ -25,13 +24,12 @@ if (loginBtn) {
             await signInWithPopup(auth, provider);
             window.location.href = './editor.html';
         } catch (error) {
-            console.error("Login Error:", error);
-            alert("Login failed! Check your Authorized Domains in Firebase.");
+            console.error(error);
+            alert("Login failed! Make sure your domain is authorized in Firebase.");
         }
     };
 }
 
-// --- SAVE LOGIC ---
 const saveBtn = document.getElementById('save-btn');
 if (saveBtn) {
     saveBtn.onclick = async () => {
@@ -51,8 +49,8 @@ if (saveBtn) {
                 document.getElementById('share-url').innerText = shareLink;
                 alert("Profile Socialized!");
             } catch (e) {
-                console.error("Save error:", e);
-                alert("Error saving! Check Firestore rules.");
+                console.error(e);
+                alert("Save error! Check Firestore rules.");
             }
         }
     };
