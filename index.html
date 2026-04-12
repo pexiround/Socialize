@@ -2,37 +2,39 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Socialize</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
-        body { background: #000; transition: background 0.8s ease; overflow-x: hidden; }
-        .theme-midnight { background: #000; color: white; }
-        .theme-neon { background: #000; color: #f0f; text-shadow: 0 0 15px #f0f; }
-        .theme-glass { background: linear-gradient(135deg, #1a1a1a 0%, #2e1065 100%); color: white; }
+        body { min-height: 100vh; display: flex; align-items: center; justify-content: center; margin: 0; transition: 0.5s; }
+        .theme-midnight { background: #080808; color: white; }
+        .theme-glass { background: radial-gradient(circle at top, #2e1065, #000); color: white; }
+        .theme-neon { background: #000; color: #f0f; }
         
-        .pulse-bg { position: fixed; inset: 0; background: radial-gradient(circle at center, #7c3aed20 0%, transparent 70%); animation: pulse 6s infinite; z-index: -1; }
-        @keyframes pulse { 0%, 100% { opacity: 0.2; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.1); } }
-        
-        .mobile-card { background: rgba(255,255,255,0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); }
+        .glass-card { 
+            background: rgba(255, 255, 255, 0.03); 
+            backdrop-filter: blur(20px); 
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
     </style>
 </head>
-<body class="theme-midnight flex items-center justify-center min-h-screen p-6">
-    <div class="pulse-bg"></div>
+<body class="theme-midnight p-6">
 
-    <div id="landing-view" class="text-center w-full max-w-xs">
-        <h1 class="text-7xl font-black italic tracking-tighter text-fuchsia-600 uppercase mb-2">Socialize</h1>
-        <p id="global-counter" class="text-[10px] tracking-[0.5em] font-bold text-zinc-600 mb-12 uppercase italic">CONNECTING...</p>
-        <button id="login-btn" class="w-full bg-white text-black font-black py-5 rounded-[2rem] hover:scale-105 active:scale-95 transition-all shadow-2xl">
-            GET STARTED
-        </button>
+    <div id="landing-view" class="text-center">
+        <h1 class="text-7xl font-black italic tracking-tighter text-fuchsia-600 uppercase mb-4">Socialize</h1>
+        <p id="global-counter" class="flex items-center justify-center text-[10px] font-bold tracking-[0.3em] text-zinc-500 mb-10"></p>
+        <button id="login-btn" class="bg-white text-black font-black px-12 py-5 rounded-full active:scale-95 transition">GET STARTED</button>
     </div>
 
-    <div id="profile-view" class="hidden w-full max-w-sm mobile-card p-10 rounded-[3.5rem] text-center shadow-2xl">
-        <img id="user-photo" src="" class="w-28 h-28 rounded-full mx-auto mb-6 border-4 border-fuchsia-600 p-1">
-        <h2 id="user-name" class="text-4xl font-black italic uppercase tracking-tighter mb-4"></h2>
-        <p id="user-bio" class="text-zinc-400 text-sm leading-relaxed font-medium mb-10"></p>
-        <div class="py-4 bg-white/5 rounded-2xl text-[10px] uppercase font-bold tracking-widest text-zinc-500">Links Locked</div>
+    <div id="profile-view" class="hidden w-full max-w-[380px] glass-card p-10 rounded-[3rem] text-center animate-in fade-in zoom-in duration-500">
+        <img id="user-photo" src="" class="w-24 h-24 rounded-full mx-auto mb-6 border-2 border-fuchsia-600 p-1">
+        <h2 id="user-name" class="text-3xl font-black flex items-center justify-center italic tracking-tighter"></h2>
+        <p id="user-bio" class="text-zinc-400 text-sm mt-4 leading-relaxed"></p>
+        <div class="mt-8 pt-8 border-t border-white/5">
+            <div class="py-3 bg-white/5 rounded-xl text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Links coming soon</div>
+        </div>
     </div>
 
     <script type="module" src="./app.js"></script>
