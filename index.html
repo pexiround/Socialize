@@ -3,39 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Socialize | My Links</title>
+    <title>Socialize Profile</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            background: linear-gradient(45deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-family: 'Inter', sans-serif;
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+        }
+        .link-card:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-3px);
+            transition: all 0.3s ease;
+        }
+    </style>
 </head>
-<body class="bg-black text-white flex flex-col items-center p-10 min-h-screen">
+<body class="p-6">
 
-    <div id="profile" class="text-center mb-8">
-        <img id="user-img" src="" class="w-24 h-24 rounded-full border-4 border-fuchsia-500 mx-auto mb-4 object-cover">
-        <h1 id="user-name" class="text-3xl font-bold italic uppercase tracking-tighter">Loading...</h1>
-        <p id="user-bio" class="text-zinc-500 mt-2"></p>
+    <div class="glass max-w-md w-full p-8 text-center shadow-2xl">
+        <div id="avatar-container" class="mb-6">
+            <img id="profile-pic" src="" class="w-24 h-24 rounded-full mx-auto border-2 border-fuchsia-500 p-1 shadow-lg shadow-fuchsia-500/20">
+        </div>
+        
+        <h1 id="name" class="text-3xl font-black tracking-tight mb-2 uppercase italic"></h1>
+        <p id="bio" class="text-zinc-400 text-sm mb-8 leading-relaxed"></p>
+
+        <div id="links" class="space-y-4">
+            </div>
+
+        <footer class="mt-10 pt-6 border-t border-white/10">
+            <p class="text-[10px] text-zinc-500 tracking-widest uppercase">Created with Socialize</p>
+        </footer>
     </div>
 
-    <div id="links-container" class="w-full max-w-sm space-y-4">
-        </div>
+    <script type="module">
+        import { config } from './config.js';
 
-    <script>
-        // Fetch the links from the JSON file
-        fetch('links.json')
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('user-name').innerText = data.name;
-                document.getElementById('user-bio').innerText = data.bio;
-                document.getElementById('user-img').src = data.profile_pic;
+        // Set Profile Info
+        document.getElementById('profile-pic').src = config.avatar;
+        document.getElementById('name').innerText = config.name;
+        document.getElementById('bio').innerText = config.bio;
+        document.title = `${config.name} | Socialize`;
 
-                const container = document.getElementById('links-container');
-                data.links.forEach(link => {
-                    const a = document.createElement('a');
-                    a.href = link.url;
-                    a.className = "block bg-zinc-900 border border-zinc-800 p-4 rounded-2xl text-center font-bold hover:scale-105 transition-transform hover:bg-zinc-800";
-                    a.innerHTML = `<span class="mr-2">${link.icon}</span> ${link.title}`;
-                    container.appendChild(a);
-                });
-            });
+        // Generate Links
+        const container = document.getElementById('links');
+        config.links.forEach(link => {
+            const a = document.createElement('a');
+            a.href = link.url;
+            a.target = "_blank";
+            a.className = "link-card block w-full p-4 glass font-bold text-sm tracking-wide flex justify-between items-center px-6";
+            a.innerHTML = `
+                <span>${link.label}</span>
+                <span class="text-fuchsia-500">→</span>
+            `;
+            container.appendChild(a);
+        });
     </script>
 </body>
 </html>
