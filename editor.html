@@ -7,11 +7,32 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
-        .tab-active { color: #d946ef; border-top: 2px solid #d946ef; }
-        body { background: #0b0b0b; }
+        body { background: #0b0b0b; color: white; }
+        .tab-active { color: #d946ef !important; border-top: 2px solid #d946ef; }
+        
+        /* THE WHEEL ANIMATIONS */
+        .wheel-container {
+            width: 220px; height: 220px;
+            border: 8px solid #1f1f1f;
+            border-radius: 50%;
+            position: relative;
+            margin: 0 auto;
+            background: conic-gradient(#d946ef 0% 25%, #701a75 25% 50%, #d946ef 50% 75%, #701a75 75% 100%);
+            transition: transform 4s cubic-bezier(0.15, 0, 0.15, 1);
+        }
+        .wheel-idle { animation: rotateIdle 20s linear infinite; }
+        @keyframes rotateIdle { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        
+        .wheel-pointer {
+            position: absolute; top: -10px; left: 50%;
+            transform: translateX(-50%);
+            width: 0; height: 0; 
+            border-left: 15px solid transparent; border-right: 15px solid transparent;
+            border-top: 30px solid white; z-index: 10;
+        }
     </style>
 </head>
-<body class="text-white pb-24">
+<body class="pb-24">
 
     <div class="p-6 flex justify-between items-center border-b border-white/5 bg-[#121212] sticky top-0 z-50">
         <h1 class="text-xl font-black italic text-fuchsia-600 uppercase">Socialize</h1>
@@ -22,68 +43,40 @@
     </div>
 
     <div class="p-6 max-w-md mx-auto">
-        
         <div id="cat-profile" class="editor-category space-y-6">
             <h2 class="text-2xl font-bold italic uppercase">Edit Profile</h2>
-            <div>
-                <label class="text-[10px] text-zinc-500 font-bold uppercase">Display Name</label>
-                <input type="text" id="edit-name" class="w-full bg-zinc-900 border border-white/10 p-4 rounded-xl mt-2 outline-none focus:border-fuchsia-600 transition">
-            </div>
-            <div>
-                <label class="text-[10px] text-zinc-500 font-bold uppercase">Biography</label>
-                <textarea id="edit-bio" class="w-full bg-zinc-900 border border-white/10 p-4 rounded-xl mt-2 outline-none focus:border-fuchsia-600 transition" rows="3"></textarea>
-            </div>
-            <button id="save-btn" class="w-full bg-white text-black py-4 rounded-xl font-black uppercase active:scale-95 transition">Sync to Cloud</button>
+            <input type="text" id="edit-name" placeholder="Display Name" class="w-full bg-zinc-900 border border-white/10 p-4 rounded-xl">
+            <textarea id="edit-bio" placeholder="Bio" class="w-full bg-zinc-900 border border-white/10 p-4 rounded-xl" rows="3"></textarea>
+            <button id="save-btn" class="w-full bg-white text-black py-4 rounded-xl font-black uppercase">Sync to Cloud</button>
         </div>
 
-        <div id="cat-spin" class="editor-category hidden text-center space-y-8 py-10">
-            <div class="w-40 h-40 bg-fuchsia-600/10 border-4 border-fuchsia-600 rounded-full mx-auto flex items-center justify-center animate-pulse">
-                <span class="material-icons text-6xl text-fuchsia-600">casino</span>
+        <div id="cat-spin" class="editor-category hidden text-center space-y-8 py-6">
+            <div class="relative">
+                <div class="wheel-pointer"></div>
+                <div id="main-wheel" class="wheel-container wheel-idle"></div>
             </div>
             <div>
                 <h2 class="text-2xl font-bold italic">HOURLY SPIN</h2>
-                <p class="text-zinc-500 text-xs mt-2 uppercase tracking-widest">Exotics & Points Await</p>
+                <p id="spin-timer" class="text-zinc-500 text-[10px] uppercase font-bold tracking-widest mt-2"></p>
             </div>
-            <button onclick="window.spinWheel()" class="w-full bg-fuchsia-600 py-5 rounded-2xl font-black uppercase shadow-lg shadow-fuchsia-900/40 active:scale-95 transition">Spin the Wheel</button>
+            <button id="spin-trigger-btn" class="w-full bg-fuchsia-600 py-5 rounded-2xl font-black uppercase active:scale-95 transition">Spin the Wheel</button>
         </div>
 
-        <div id="cat-shop" class="editor-category hidden">
-            <h2 class="text-2xl font-bold italic mb-6">POINT SHOP</h2>
-            <div class="grid grid-cols-2 gap-4">
-                <div class="bg-zinc-900 p-4 rounded-2xl border border-white/5 text-center">
-                    <div class="w-10 h-10 bg-blue-500/20 rounded-full mx-auto mb-3"></div>
-                    <p class="text-[10px] font-bold uppercase">Neon Frame</p>
-                    <button class="mt-3 text-[9px] bg-white/10 px-3 py-1 rounded-full text-zinc-400">500 SP</button>
-                </div>
-                <div class="bg-zinc-900 p-4 rounded-2xl border border-white/5 text-center opacity-50">
-                    <div class="w-10 h-10 bg-zinc-700 rounded-full mx-auto mb-3"></div>
-                    <p class="text-[10px] font-bold uppercase">Coming Soon</p>
-                </div>
-            </div>
-        </div>
-
-        <div id="cat-settings" class="editor-category hidden space-y-6">
-            <h2 class="text-2xl font-bold italic uppercase">Settings</h2>
-            <button onclick="window.logout()" class="w-full border border-red-500/50 text-red-500 py-4 rounded-xl font-bold hover:bg-red-500/10 transition">Sign Out</button>
+        <div id="cat-shop" class="editor-category hidden"> <h2 class="text-2xl font-bold mb-6">SHOP COMING SOON</h2> </div>
+        <div id="cat-settings" class="editor-category hidden text-center pt-10">
+            <button id="logout-btn" class="text-red-500 font-bold">Logout</button>
         </div>
     </div>
 
-    <div class="fixed bottom-0 left-0 right-0 bg-[#121212] border-t border-white/5 flex justify-around p-4 pb-8 z-50">
-        <button onclick="window.showCategory('cat-profile', this)" class="tab-link tab-active flex flex-col items-center gap-1">
-            <span class="material-icons">person</span>
-            <span class="text-[8px] font-bold uppercase">Profile</span>
+    <div class="fixed bottom-0 left-0 right-0 bg-[#121212] border-t border-white/5 flex justify-around p-4 pb-8">
+        <button id="tab-btn-profile" class="tab-link text-zinc-500 flex flex-col items-center gap-1">
+            <span class="material-icons">person</span><span class="text-[8px] font-bold">PROFILE</span>
         </button>
-        <button onclick="window.showCategory('cat-spin', this)" class="tab-link text-zinc-500 flex flex-col items-center gap-1">
-            <span class="material-icons">auto_fix_high</span>
-            <span class="text-[8px] font-bold uppercase">Spin</span>
+        <button id="tab-btn-spin" class="tab-link text-zinc-500 flex flex-col items-center gap-1">
+            <span class="material-icons">auto_fix_high</span><span class="text-[8px] font-bold">SPIN</span>
         </button>
-        <button onclick="window.showCategory('cat-shop', this)" class="tab-link text-zinc-500 flex flex-col items-center gap-1">
-            <span class="material-icons">shopping_bag</span>
-            <span class="text-[8px] font-bold uppercase">Shop</span>
-        </button>
-        <button onclick="window.showCategory('cat-settings', this)" class="tab-link text-zinc-500 flex flex-col items-center gap-1">
-            <span class="material-icons">settings</span>
-            <span class="text-[8px] font-bold uppercase">Settings</span>
+        <button id="tab-btn-settings" class="tab-link text-zinc-500 flex flex-col items-center gap-1">
+            <span class="material-icons">settings</span><span class="text-[8px] font-bold">SETTINGS</span>
         </button>
     </div>
 
