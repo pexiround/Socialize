@@ -1,0 +1,11 @@
+{
+  "name": "Your Name",
+  "bio": "Digital Creator | Socialize Enthusiast",
+  "profile_pic": "https://via.placeholder.com/150",
+  "theme_color": "#ff00ff",
+  "links": [
+    { "title": "Instagram", "url": "https://instagram.com/yourname", "icon": "📸" },
+    { "title": "GitHub", "url": "https://github.com/yourname", "icon": "💻" },
+    { "title": "Portfolio", "url": "https://yourwebsite.com", "icon": "🌐" }
+  ]
+}
