@@ -9,31 +9,16 @@
     <style>
         :root { --bg: #080808; --card: #121212; --text: #ffffff; --border: rgba(255,255,255,0.1); }
         .light-mode { --bg: #f4f4f5; --card: #ffffff; --text: #09090b; --border: rgba(0,0,0,0.1); }
-        
-        body { background: var(--bg); color: var(--text); transition: all 0.3s ease; min-height: 100vh; }
+        body { background: var(--bg); color: var(--text); transition: all 0.3s ease; min-height: 100vh; font-family: 'Inter', sans-serif; }
         .app-card { background: var(--card); border: 1px solid var(--border); }
         .tab-active { color: #d946ef !important; border-top: 2px solid #d946ef; }
-
-        /* WHEEL IMPROVED */
-        .wheel-wrap { position: relative; width: 260px; height: 260px; margin: 0 auto; }
-        .wheel-inner { 
-            width: 100%; height: 100%; border-radius: 50%; border: 8px solid var(--border);
-            background: conic-gradient(
-                #d946ef 0deg 90deg,   /* 50 SP */
-                #111 90deg 180deg,    /* 100 SP */
-                #d946ef 180deg 270deg, /* 250 SP */
-                #111 270deg 358deg,    /* 0 SP (Bad luck) */
-                #ffd700 358deg 360deg  /* EXOTIC (5000 SP) */
-            );
-            transition: transform 5s cubic-bezier(0.1, 0.8, 0.1, 1);
-        }
-        .pointer { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 30px solid white; z-index: 20; filter: drop-shadow(0 0 5px rgba(0,0,0,0.5)); }
-        
-        /* COSMETIC FRAMES */
+        .wheel-inner { border-radius: 50%; border: 8px solid var(--border); transition: transform 5s cubic-bezier(0.1, 0.8, 0.1, 1); }
+        /* FRAMES */
         .frame-none { border: 4px solid transparent; }
         .frame-neon { border: 4px solid #d946ef; box-shadow: 0 0 20px #d946ef; }
         .frame-gold { border: 4px solid #fbbf24; box-shadow: 0 0 20px #fbbf24; }
-        .frame-crimson { border: 4px solid #ef4444; box-shadow: 0 0 20px #ef4444; }
+        .frame-emerald { border: 4px solid #10b981; box-shadow: 0 0 20px #10b981; }
+        .frame-void { border: 4px solid #6366f1; border-style: dashed; }
     </style>
 </head>
 <body class="pb-28">
@@ -43,84 +28,68 @@
             <h1 class="text-xl font-black italic text-fuchsia-600 uppercase">Socialize</h1>
             <p id="ui-points" class="text-yellow-500 font-bold text-[10px] tracking-widest">0 SP</p>
         </div>
-        <button id="btn-link" class="bg-fuchsia-600 text-white text-[10px] font-black px-5 py-2 rounded-full uppercase hover:bg-fuchsia-500 transition">Your Link</button>
+        <button id="btn-link" class="bg-fuchsia-600 text-white text-[10px] font-black px-5 py-2 rounded-full uppercase">Your Link</button>
     </div>
 
     <div class="p-6 max-w-md mx-auto space-y-6">
-
-        <div class="app-card rounded-3xl p-8 text-center shadow-2xl relative overflow-hidden">
-            <div id="prev-frame-target" class="relative w-28 h-28 mx-auto mb-4 rounded-xl overflow-hidden frame-none transition-all">
+        <div class="app-card rounded-3xl p-8 text-center shadow-2xl">
+            <div id="prev-frame-target" class="relative w-28 h-28 mx-auto mb-4 rounded-xl overflow-hidden frame-none">
                 <img id="prev-img" src="" class="w-full h-full object-cover">
             </div>
-            <h3 id="prev-name" class="text-2xl font-bold italic tracking-tight"></h3>
+            <h3 id="prev-name" class="text-2xl font-bold italic"></h3>
             <p id="prev-title" class="text-[10px] font-black uppercase tracking-[0.3em] text-fuchsia-500 mt-2"></p>
         </div>
 
         <div id="sec-profile" class="app-sec space-y-4">
+            <input type="text" id="in-name" placeholder="Name" class="w-full bg-black/20 border border-white/10 p-4 rounded-2xl outline-none">
+            <textarea id="in-bio" placeholder="Bio" class="w-full bg-black/20 border border-white/10 p-4 rounded-2xl outline-none" rows="2"></textarea>
+            
+            <h2 class="text-[10px] font-bold uppercase text-zinc-500">Inventory</h2>
+            <div id="inventory-list" class="grid grid-cols-2 gap-2"></div>
+            
+            <button id="btn-save" class="w-full bg-white text-black py-4 rounded-2xl font-black uppercase">Save</button>
+        </div>
+
+        <div id="sec-spin" class="app-sec hidden text-center space-y-6">
+            <div class="relative w-64 h-64 mx-auto">
+                <div class="absolute top-[-10px] left-1/2 -translate-x-1/2 w-0 h-0 border-l-[15px] border-l-transparent border-r-[15px] border-r-transparent border-t-[30px] border-t-white z-10"></div>
+                <div id="wheel-obj" class="w-full h-full wheel-inner bg-[conic-gradient(#d946ef_0deg_90deg,#111_90deg_180deg,#d946ef_180deg_270deg,#111_270deg_358deg,#ffd700_358deg_360deg)]"></div>
+            </div>
+            <button id="btn-spin" class="w-full bg-fuchsia-600 py-5 rounded-2xl font-black uppercase">Spin (100 SP)</button>
+        </div>
+
+        <div id="sec-shop" class="app-sec hidden space-y-3">
+            <h2 class="text-xl font-black uppercase italic mb-4">Cosmetic Shop</h2>
+            <div id="shop-items" class="space-y-2"></div>
+        </div>
+
+        <div id="sec-referral" class="app-sec hidden space-y-4">
+            <h2 class="text-xl font-black uppercase italic">Referrals</h2>
+            <div class="app-card p-6 rounded-2xl text-center">
+                <p class="text-xs text-zinc-500 mb-2 uppercase font-bold">Your Referral Code</p>
+                <p id="my-ref-code" class="text-2xl font-black tracking-widest text-fuchsia-500">----</p>
+            </div>
             <div class="space-y-2">
-                <label class="text-[10px] font-bold uppercase text-zinc-500 ml-1">Identity</label>
-                <input type="text" id="in-name" placeholder="Name" class="w-full bg-black/20 border border-white/10 p-4 rounded-2xl outline-none focus:border-fuchsia-600">
-                <textarea id="in-bio" placeholder="Bio" class="w-full bg-black/20 border border-white/10 p-4 rounded-2xl outline-none focus:border-fuchsia-600" rows="2"></textarea>
+                <p class="text-[10px] font-bold text-zinc-500 uppercase">Redeem a Code (+1000 SP)</p>
+                <input type="text" id="in-ref-redeem" placeholder="Enter Code" class="w-full bg-black/20 border border-white/10 p-4 rounded-2xl outline-none">
+                <button id="btn-redeem" class="w-full bg-zinc-100 text-black py-4 rounded-2xl font-black uppercase">Claim Points</button>
             </div>
-            
-            <label class="text-[10px] font-bold uppercase text-zinc-500 ml-1">Equip Collection</label>
-            <div id="inventory-list" class="grid grid-cols-2 gap-3">
-                </div>
-            
-            <button id="btn-save" class="w-full bg-white text-black py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-zinc-200 transition">Update Cloud</button>
         </div>
-
-        <div id="sec-spin" class="app-sec hidden text-center space-y-8 py-4">
-            <div class="wheel-wrap">
-                <div class="pointer"></div>
-                <div id="wheel-obj" class="wheel-inner"></div>
-            </div>
-            <div class="flex justify-around text-[10px] font-bold uppercase text-zinc-500 bg-black/20 p-4 rounded-xl">
-                <span>Common: 50</span>
-                <span>Rare: 250</span>
-                <span class="text-yellow-500">Exotic: 5k</span>
-            </div>
-            <button id="btn-spin" class="w-full bg-fuchsia-600 text-white py-5 rounded-2xl font-black uppercase shadow-lg shadow-fuchsia-900/20 active:scale-95 transition">Spin (100 SP)</button>
-        </div>
-
-        <div id="sec-shop" class="app-sec hidden space-y-4">
-            <h2 class="text-xl font-black uppercase italic mb-4">The Collection</h2>
-            <div id="shop-items" class="space-y-3">
-                </div>
-        </div>
-
-        <div id="sec-settings" class="app-sec hidden space-y-4">
-            <div class="app-card p-5 rounded-2xl flex justify-between items-center">
-                <span class="font-bold text-xs uppercase tracking-widest">Environment Theme</span>
-                <button id="btn-theme-toggle" class="p-2 bg-white/5 rounded-lg"><span class="material-icons text-sm">light_mode</span></button>
-            </div>
-            <button id="btn-logout" class="w-full p-5 rounded-2xl bg-zinc-900 font-bold uppercase text-[10px] tracking-widest">Sign Out</button>
-            <button id="btn-delete" class="w-full p-5 rounded-2xl border border-red-900/30 text-red-500 font-bold uppercase text-[10px] tracking-widest">Purge Account</button>
-        </div>
-
     </div>
 
     <div class="fixed bottom-0 left-0 right-0 app-card border-t flex justify-around p-4 pb-10 z-50">
-        <button id="nav-profile" class="tab-link tab-active flex flex-col items-center"><span class="material-icons">account_circle</span></button>
-        <button id="nav-spin" class="tab-link text-zinc-600 flex flex-col items-center"><span class="material-icons">casino</span></button>
+        <button id="nav-profile" class="tab-link tab-active flex flex-col items-center"><span class="material-icons">person</span></button>
+        <button id="nav-spin" class="tab-link text-zinc-500 flex flex-col items-center"><span class="material-icons">casino</span></button>
         <button id="nav-shop" class="tab-link text-zinc-600 flex flex-col items-center"><span class="material-icons">shopping_bag</span></button>
-        <button id="nav-settings" class="tab-link text-zinc-600 flex flex-col items-center"><span class="material-icons">settings</span></button>
+        <button id="nav-referral" class="tab-link text-zinc-600 flex flex-col items-center"><span class="material-icons">group_add</span></button>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut, deleteUser } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, updateDoc, increment, arrayUnion, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, updateDoc, increment, arrayUnion, setDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyCNl7BW60B6GrHrGx02QaiUbZU3Z3oYlXM",
-            authDomain: "socialize-614d2.firebaseapp.com",
-            projectId: "socialize-614d2",
-            storageBucket: "socialize-614d2.firebasestorage.app",
-            messagingSenderId: "506436447388",
-            appId: "1:506436447388:web:c8d876b69ed57048981159"
-        };
-
+        const firebaseConfig = { apiKey: "AIzaSyCNl7BW60B6GrHrGx02QaiUbZU3Z3oYlXM", authDomain: "socialize-614d2.firebaseapp.com", projectId: "socialize-614d2", storageBucket: "socialize-614d2.firebasestorage.app", messagingSenderId: "506436447388", appId: "1:506436447388:web:c8d876b69ed57048981159" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
@@ -128,9 +97,11 @@
         const ITEMS = [
             { id: 'frame-neon', name: 'Neon Glow', price: 500, type: 'frame' },
             { id: 'frame-gold', name: 'Royal Gold', price: 2500, type: 'frame' },
-            { id: 'frame-crimson', name: 'Crimson', price: 1200, type: 'frame' },
+            { id: 'frame-emerald', name: 'Emerald', price: 1500, type: 'frame' },
+            { id: 'frame-void', name: 'Void Walker', price: 4000, type: 'frame' },
             { id: 'title-founder', name: 'Founder', price: 5000, type: 'title' },
-            { id: 'title-hustler', name: 'Hustler', price: 1000, type: 'title' }
+            { id: 'title-verified', name: 'Verified', price: 1000, type: 'title' },
+            { id: 'title-rich', name: 'The 1%', price: 10000, type: 'title' }
         ];
 
         onAuthStateChanged(auth, async (user) => {
@@ -140,105 +111,98 @@
             const sync = async () => {
                 const snap = await getDoc(userRef);
                 if(!snap.exists()) {
-                    await setDoc(userRef, { points: 500, inventory: [], name: user.displayName });
+                    await setDoc(userRef, { points: 500, inventory: [], name: user.displayName, refCode: user.uid.substring(0,6).toUpperCase() });
                     return location.reload();
                 }
                 const d = snap.data();
-                
                 document.getElementById('ui-points').innerText = `${d.points || 0} SP`;
                 document.getElementById('in-name').value = d.name || "";
                 document.getElementById('in-bio').value = d.bio || "";
-                
-                // Live Preview
-                document.getElementById('prev-name').innerText = d.name || "Unknown";
+                document.getElementById('my-ref-code').innerText = d.refCode;
+                document.getElementById('prev-name').innerText = d.name || "User";
                 document.getElementById('prev-img').src = user.photoURL;
-                document.getElementById('prev-frame-target').className = `relative w-28 h-28 mx-auto mb-4 rounded-xl overflow-hidden transition-all ${d.equippedFrame || 'frame-none'}`;
-                document.getElementById('prev-title').innerText = d.equippedTitle?.replace('title-', '') || "";
+                document.getElementById('prev-frame-target').className = `relative w-28 h-28 mx-auto mb-4 rounded-xl overflow-hidden ${d.equippedFrame || 'frame-none'}`;
+                document.getElementById('prev-title').innerText = d.equippedTitle?.replace('title-', '').toUpperCase() || "";
+
+                // Shop (One-time buy filter)
+                const shopDiv = document.getElementById('shop-items');
+                shopDiv.innerHTML = "";
+                ITEMS.forEach(item => {
+                    if(d.inventory?.includes(item.id)) return;
+                    const row = document.createElement('div');
+                    row.className = "app-card p-4 rounded-2xl flex justify-between items-center";
+                    row.innerHTML = `<span class="text-xs font-bold uppercase">${item.name}</span> <button class="bg-fuchsia-600 px-4 py-2 rounded-xl text-[10px] font-black">${item.price} SP</button>`;
+                    row.onclick = async () => {
+                        if(d.points < item.price) return alert("Not enough SP");
+                        await updateDoc(userRef, { points: increment(-item.price), inventory: arrayUnion(item.id) });
+                        sync();
+                    };
+                    shopDiv.appendChild(row);
+                });
 
                 // Inventory
-                const inv = document.getElementById('inventory-list');
-                inv.innerHTML = "";
+                const invDiv = document.getElementById('inventory-list');
+                invDiv.innerHTML = "";
                 (d.inventory || []).forEach(id => {
                     const b = document.createElement('button');
-                    b.className = "p-3 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-white/10";
+                    b.className = "p-3 bg-white/5 border border-white/10 rounded-xl text-[8px] font-black uppercase";
                     b.innerText = id.split('-')[1];
                     b.onclick = async () => {
                         const key = id.includes('frame') ? 'equippedFrame' : 'equippedTitle';
                         await updateDoc(userRef, { [key]: id });
                         sync();
                     };
-                    inv.appendChild(b);
+                    invDiv.appendChild(b);
                 });
             };
             sync();
 
-            // Shop UI
-            const shop = document.getElementById('shop-items');
-            shop.innerHTML = "";
-            ITEMS.forEach(item => {
-                const card = document.createElement('div');
-                card.className = "app-card p-4 rounded-2xl flex justify-between items-center";
-                card.innerHTML = `<span class="text-xs font-bold uppercase tracking-widest">${item.name}</span>`;
-                const b = document.createElement('button');
-                b.className = "bg-fuchsia-600 px-4 py-2 rounded-xl text-[10px] font-black";
-                b.innerText = `${item.price} SP`;
-                b.onclick = async () => {
-                    const snap = await getDoc(userRef);
-                    if(snap.data().points < item.price) return alert("Insufficient SP");
-                    await updateDoc(userRef, { points: increment(-item.price), inventory: arrayUnion(item.id) });
-                    sync();
-                };
-                card.appendChild(b);
-                shop.appendChild(card);
-            });
-
-            // Spin Logic
             document.getElementById('btn-spin').onclick = async () => {
-                const snap = await getDoc(userRef);
-                if(snap.data().points < 100) return alert("Need 100 SP");
-                
+                const s = await getDoc(userRef);
+                if(s.data().points < 100) return alert("100 SP needed");
                 const wheel = document.getElementById('wheel-obj');
                 const rand = Math.random();
-                let prize = 50; 
-                let deg = 3600 + 45; // Default Common
-
-                if(rand < 0.005) { prize = 5000; deg = 3600 + 359; } // Exotic
-                else if(rand < 0.2) { prize = 250; deg = 3600 + 225; } // Rare
-                else if(rand < 0.5) { prize = 100; deg = 3600 + 135; } 
-
+                let prize = 50, deg = 3600 + 45;
+                if(rand < 0.005) { prize = 5000; deg = 3600 + 359; }
+                else if(rand < 0.2) { prize = 250; deg = 3600 + 225; }
                 wheel.style.transform = `rotate(${deg}deg)`;
                 await updateDoc(userRef, { points: increment(-100) });
-
-                setTimeout(async () => {
-                    await updateDoc(userRef, { points: increment(prize) });
-                    sync();
-                    alert(`Winner: ${prize} SP!`);
-                }, 5200);
+                setTimeout(async () => { await updateDoc(userRef, { points: increment(prize) }); sync(); alert("Won " + prize); }, 5200);
             };
 
-            // Helpers
-            document.getElementById('btn-save').onclick = async () => {
-                await updateDoc(userRef, { name: document.getElementById('in-name').value, bio: document.getElementById('in-bio').value });
-                alert("Cloud Sync Complete");
+            document.getElementById('btn-redeem').onclick = async () => {
+                const code = document.getElementById('in-ref-redeem').value.toUpperCase();
+                const d = (await getDoc(userRef)).data();
+                if(d.hasRedeemed) return alert("Already redeemed a code!");
+                if(code === d.refCode) return alert("Can't use your own code!");
+                
+                const q = query(collection(db, "users"), where("refCode", "==", code));
+                const snap = await getDocs(q);
+                if(snap.empty) return alert("Invalid Code");
+                
+                await updateDoc(userRef, { points: increment(1000), hasRedeemed: true });
+                await updateDoc(doc(db, "users", snap.docs[0].id), { points: increment(1000) });
+                alert("Redeemed! +1000 SP each!");
                 sync();
             };
 
-            document.getElementById('btn-theme-toggle').onclick = () => document.body.classList.toggle('light-mode');
-            document.getElementById('btn-link').onclick = () => {
-                const url = `${window.location.origin}${window.location.pathname.replace('editor.html', 'profile.html')}?u=${user.uid}`;
-                prompt("Share your profile link:", url);
+            document.getElementById('btn-save').onclick = async () => {
+                await updateDoc(userRef, { name: document.getElementById('in-name').value, bio: document.getElementById('in-bio').value });
+                alert("Saved!"); sync();
             };
 
-            document.getElementById('btn-logout').onclick = () => signOut(auth);
-            
-            // Tab switching
-            const navMap = {'nav-profile':'sec-profile', 'nav-spin':'sec-spin', 'nav-shop':'sec-shop', 'nav-settings':'sec-settings'};
-            Object.keys(navMap).forEach(key => {
-                document.getElementById(key).onclick = () => {
+            document.getElementById('btn-link').onclick = () => {
+                const url = window.location.href.replace('editor.html', 'profile.html') + "?u=" + user.uid;
+                prompt("Share link:", url);
+            };
+
+            const navs = {'nav-profile':'sec-profile', 'nav-spin':'sec-spin', 'nav-shop':'sec-shop', 'nav-referral':'sec-referral'};
+            Object.keys(navs).forEach(k => {
+                document.getElementById(k).onclick = () => {
                     document.querySelectorAll('.app-sec').forEach(s => s.classList.add('hidden'));
                     document.querySelectorAll('.tab-link').forEach(l => l.classList.remove('tab-active'));
-                    document.getElementById(navMap[key]).classList.remove('hidden');
-                    document.getElementById(key).classList.add('tab-active');
+                    document.getElementById(navs[k]).classList.remove('hidden');
+                    document.getElementById(k).classList.add('tab-active');
                 };
             });
         });
