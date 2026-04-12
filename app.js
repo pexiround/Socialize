@@ -1,6 +1,6 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10/app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCNl7BW60B6GrHrGx02QaiUbZU3Z3oYlXM",
@@ -17,40 +17,42 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
-// 1. PROFILE VIEW LOGIC (Checks if someone is visiting a profile link)
+// Check if viewing a profile
 const urlParams = new URLSearchParams(window.location.search);
-const profileId = urlParams.get('u');
+const userId = urlParams.get('u');
 
-if (profileId) {
-    document.getElementById('landing-view').classList.add('hidden');
-    const userDoc = await getDoc(doc(db, "users", profileId));
+if (userId) {
+    const landing = document.getElementById('landing-view');
+    if(landing) landing.style.display = 'none';
+    
+    const userDoc = await getDoc(doc(db, "users", userId));
     if (userDoc.exists()) {
         const data = userDoc.data();
         document.getElementById('profile-view').classList.remove('hidden');
         document.getElementById('user-name').innerText = data.name;
         document.getElementById('user-bio').innerText = data.bio;
-        document.getElementById('user-photo').src = data.avatar;
+        document.getElementById('user-photo').src = data.avatar || "";
     }
 }
 
-// 2. LOGIN LOGIC
+// Login Button
 const loginBtn = document.getElementById('login-btn');
 if (loginBtn) {
-    loginBtn.addEventListener('click', async () => {
+    loginBtn.onclick = async () => {
         try {
             await signInWithPopup(auth, provider);
             window.location.href = './editor.html';
-        } catch (e) {
-            console.error(e);
-            alert("Login error! Check your Authorized Domains.");
+        } catch (error) {
+            console.error(error);
+            alert("Login failed! Check your Firebase Authorized Domains.");
         }
-    });
+    };
 }
 
-// 3. SAVE LOGIC (Runs only on editor.html)
+// Save Button (for editor.html)
 const saveBtn = document.getElementById('save-btn');
 if (saveBtn) {
-    saveBtn.addEventListener('click', async () => {
+    saveBtn.onclick = async () => {
         const user = auth.currentUser;
         if (user) {
             const name = document.getElementById('edit-name').value;
@@ -66,5 +68,5 @@ if (saveBtn) {
             document.getElementById('share-url').innerText = link;
             alert("Profile Socialized!");
         }
-    });
+    };
 }
