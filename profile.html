@@ -2,43 +2,38 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Socialize | View</title>
+    <title>Socialize | View Profile</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background: #080808; color: white; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-        .profile-card { background: #121212; border: 1px solid rgba(255,255,255,0.05); width: 100%; max-width: 380px; border-radius: 40px; padding: 40px; text-align: center; box-shadow: 0 50px 100px -20px rgba(0,0,0,1); }
-        .frame-none { border: 4px solid transparent; }
+        .p-card { background: #121212; border: 1px solid rgba(255,255,255,0.05); width: 100%; max-width: 380px; border-radius: 40px; padding: 40px; text-align: center; }
+        .loading { animate: pulse 1s infinite; }
         .frame-neon { border: 4px solid #d946ef; box-shadow: 0 0 30px #d946ef; }
         .frame-gold { border: 4px solid #fbbf24; box-shadow: 0 0 30px #fbbf24; }
-        .frame-crimson { border: 4px solid #ef4444; box-shadow: 0 0 30px #ef4444; }
+        .frame-emerald { border: 4px solid #10b981; box-shadow: 0 0 30px #10b981; }
+        .frame-void { border: 4px solid #6366f1; border-style: dashed; }
     </style>
 </head>
 <body>
-    <div class="profile-card">
-        <div id="frame-box" class="w-32 h-32 mx-auto rounded-3xl overflow-hidden mb-6 frame-none transition-all">
-            <img id="pfp" src="" class="w-full h-full object-cover">
+    <div id="loader" class="text-fuchsia-600 font-black animate-pulse">LOADING PROFILE...</div>
+    
+    <div id="main-content" class="hidden p-card">
+        <div id="f-box" class="w-32 h-32 mx-auto rounded-3xl overflow-hidden mb-6 transition-all">
+            <img id="p-img" src="" class="w-full h-full object-cover">
         </div>
-        <h1 id="name" class="text-3xl font-black italic tracking-tighter"></h1>
-        <p id="title" class="text-[10px] font-black uppercase tracking-[0.4em] text-fuchsia-600 mt-2 mb-6"></p>
+        <h1 id="p-name" class="text-3xl font-black italic tracking-tighter"></h1>
+        <p id="p-title" class="text-[10px] font-black uppercase tracking-[0.4em] text-fuchsia-600 mt-2 mb-6"></p>
         <div class="bg-white/5 p-6 rounded-3xl border border-white/5">
-            <p id="bio" class="text-zinc-400 text-sm leading-relaxed italic"></p>
+            <p id="p-bio" class="text-zinc-400 text-sm italic"></p>
         </div>
-        <button onclick="location.href='index.html'" class="mt-10 text-[9px] font-black uppercase tracking-widest text-zinc-600 hover:text-white transition">Create Your Own</button>
+        <button onclick="location.href='index.html'" class="mt-8 text-[9px] text-zinc-600 font-black uppercase tracking-widest">Create Profile</button>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyCNl7BW60B6GrHrGx02QaiUbZU3Z3oYlXM",
-            authDomain: "socialize-614d2.firebaseapp.com",
-            projectId: "socialize-614d2",
-            storageBucket: "socialize-614d2.firebasestorage.app",
-            messagingSenderId: "506436447388",
-            appId: "1:506436447388:web:c8d876b69ed57048981159"
-        };
-
+        const firebaseConfig = { apiKey: "AIzaSyCNl7BW60B6GrHrGx02QaiUbZU3Z3oYlXM", authDomain: "socialize-614d2.firebaseapp.com", projectId: "socialize-614d2", storageBucket: "socialize-614d2.firebasestorage.app", messagingSenderId: "506436447388", appId: "1:506436447388:web:c8d876b69ed57048981159" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
@@ -49,12 +44,17 @@
             const snap = await getDoc(doc(db, "users", uid));
             if(snap.exists()){
                 const d = snap.data();
-                document.getElementById('name').innerText = d.name || "User";
-                document.getElementById('bio').innerText = d.bio || "No biography provided.";
-                document.getElementById('title').innerText = d.equippedTitle?.replace('title-', '') || "";
-                document.getElementById('frame-box').className = `w-32 h-32 mx-auto rounded-3xl overflow-hidden mb-6 transition-all ${d.equippedFrame || 'frame-none'}`;
-                // Since we don't store pfp in DB, we'd ideally pass it or use a default
-                document.getElementById('pfp').src = `https://api.dicebear.com/7.x/bottts/svg?seed=${uid}`;
+                document.getElementById('p-name').innerText = d.name || "User";
+                document.getElementById('p-bio').innerText = d.bio || "The founder of this profile is mysterious.";
+                document.getElementById('p-title').innerText = d.equippedTitle?.replace('title-', '') || "";
+                document.getElementById('f-box').className = `w-32 h-32 mx-auto rounded-3xl overflow-hidden mb-6 ${d.equippedFrame || 'frame-none'}`;
+                // Using DiceBear as a fallback because Firestore doesn't store the Google PFP by default
+                document.getElementById('p-img').src = `https://api.dicebear.com/7.x/shapes/svg?seed=${uid}`;
+                
+                document.getElementById('loader').classList.add('hidden');
+                document.getElementById('main-content').classList.remove('hidden');
+            } else {
+                document.getElementById('loader').innerText = "USER NOT FOUND";
             }
         }
     </script>
