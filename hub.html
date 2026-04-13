@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Socialize | Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        body { background: #050505; color: white; font-family: 'Inter', sans-serif; }
+        .app-card { background: #0d0d0d; border: 1px solid rgba(255,255,255,0.05); }
+        .frame-neon { border: 4px solid #d946ef; box-shadow: 0 0 20px #d946ef; }
+        .frame-gold { border: 4px solid #fbbf24; box-shadow: 0 0 20px #fbbf24; }
+        .frame-emerald { border: 4px solid #10b981; box-shadow: 0 0 20px #10b981; }
+        .frame-void { border: 4px solid #6366f1; border-style: dashed; }
+    </style>
+</head>
+<body class="pb-32">
+
+    <div id="debug-log" class="fixed top-0 left-0 w-full bg-red-600 text-white text-[10px] p-2 z-[100] hidden"></div>
+
+    <div class="p-6 max-w-md mx-auto space-y-6">
+        <div class="app-card rounded-[40px] p-8 text-center relative overflow-hidden">
+            <div id="prev-frame" class="relative w-32 h-32 mx-auto mb-4 rounded-3xl overflow-hidden frame-none transition-all duration-500">
+                <img id="u-pfp" src="https://api.dicebear.com/7.x/shapes/svg?seed=1" class="w-full h-full object-cover">
+                <label for="pfp-input" class="absolute inset-0 bg-black/60 opacity-0 hover:opacity-100 flex items-center justify-center cursor-pointer transition">
+                    <span class="material-icons">add_a_photo</span>
+                </label>
+                <input type="file" id="pfp-input" class="hidden" accept="image/*">
+            </div>
+            <h2 id="u-name" class="text-2xl font-black italic">Loading...</h2>
+            <p id="u-points" class="text-yellow-500 font-bold text-[10px] tracking-widest uppercase">0 SP</p>
+        </div>
+
+        <div class="space-y-4">
+            <h3 class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Premium Shop</h3>
+            <div id="shop-list" class="space-y-2"></div>
+        </div>
+    </div>
+
+    <nav class="fixed bottom-0 left-0 right-0 bg-[#0d0d0d] border-t border-white/5 flex justify-around p-4 pb-8 z-50">
+        <button onclick="location.href='hub.html'" class="text-fuchsia-500"><span class="material-icons">person</span></button>
+        <button onclick="location.href='chat.html'" class="text-zinc-600"><span class="material-icons">forum</span></button>
+        <button onclick="location.href='arcade.html'" class="text-zinc-600"><span class="material-icons">sports_esports</span></button>
+    </nav>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, updateDoc, increment, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
+        // Emergency Error Catcher
+        window.onerror = (m) => {
+            const d = document.getElementById('debug-log');
+            d.innerText = "CRASH: " + m;
+            d.classList.remove('hidden');
+        };
+
+        const firebaseConfig = { apiKey: "AIzaSyCNl7BW60B6GrHrGx02QaiUbZU3Z3oYlXM", authDomain: "socialize-614d2.firebaseapp.com", projectId: "socialize-614d2", storageBucket: "socialize-614d2.firebasestorage.app", messagingSenderId: "506436447388", appId: "1:506436447388:web:c8d876b69ed57048981159" };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+
+        const ITEMS = [
+            { id: 'frame-neon', name: 'Neon', price: 500 },
+            { id: 'frame-gold', name: 'Gold', price: 2500 },
+            { id: 'frame-void', name: 'Void', price: 5000 }
+        ];
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) return window.location.href = 'index.html';
+            
+            const userRef = doc(db, "users", user.uid);
+            
+            const syncUI = async () => {
+                const snap = await getDoc(userRef);
+                const d = snap.data() || {};
+                
+                document.getElementById('u-name').innerText = d.name || "User";
+                document.getElementById('u-points').innerText = (d.points || 0) + " SP";
+                document.getElementById('u-pfp').src = d.pfpUrl || `https://api.dicebear.com/7.x/shapes/svg?seed=${user.uid}`;
+                document.getElementById('prev-frame').className = `relative w-32 h-32 mx-auto mb-4 rounded-3xl overflow-hidden transition-all duration-500 ${d.equippedFrame || 'frame-none'}`;
+
+                // Shop with Preview
+                const list = document.getElementById('shop-list');
+                list.innerHTML = "";
+                ITEMS.forEach(item => {
+                    if(d.inventory?.includes(item.id)) return;
+                    const btn = document.createElement('div');
+                    btn.className = "app-card p-4 rounded-2xl flex justify-between items-center cursor-pointer hover:border-fuchsia-500";
+                    btn.innerHTML = `<span class="text-xs font-bold uppercase">${item.name}</span> <span class="text-fuchsia-500 font-black">${item.price} SP</span>`;
+                    
+                    // Preview on hover
+                    btn.onmouseenter = () => document.getElementById('prev-frame').className = `relative w-32 h-32 mx-auto mb-4 rounded-3xl overflow-hidden transition-all duration-500 ${item.id}`;
+                    btn.onmouseleave = () => syncUI();
+                    
+                    btn.onclick = async () => {
+                        if(d.points < item.price) return alert("Poor!");
+                        await updateDoc(userRef, { points: increment(-item.price), inventory: arrayUnion(item.id), equippedFrame: item.id });
+                        syncUI();
+                    };
+                    list.appendChild(btn);
+                });
+            };
+
+            // PFP Upload logic
+            document.getElementById('pfp-input').onchange = async (e) => {
+                const file = e.target.files[0];
+                if(!file) return;
+                const r = ref(storage, `pfps/${user.uid}`);
+                await uploadBytes(r, file);
+                const url = await getDownloadURL(r);
+                await updateDoc(userRef, { pfpUrl: url });
+                syncUI();
+            };
+
+            syncUI();
+        });
+    </script>
+</body>
+</html>
