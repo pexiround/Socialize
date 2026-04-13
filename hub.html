@@ -8,9 +8,11 @@
     <style>
         body { background: #050505; color: white; font-family: 'Inter', sans-serif; overflow: hidden; }
         .app-card { background: #0d0d0d; border: 1px solid rgba(255,255,255,0.05); }
-        .interest-chip { padding: 8px 16px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); font-size: 10px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .interest-chip { padding: 6px 14px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); font-size: 10px; font-weight: bold; cursor: pointer; transition: 0.2s; }
         .interest-chip.selected { background: #d946ef; border-color: #d946ef; color: white; }
-        .user-row { display: flex; align-items: center; justify-content: space-between; padding: 12px; border-radius: 15px; margin-bottom: 8px; background: rgba(255,255,255,0.02); }
+        .msg { margin-bottom: 8px; padding: 12px; border-radius: 20px; font-size: 13px; max-width: 80%; }
+        .msg-mine { background: #d946ef; margin-left: auto; border-bottom-right-radius: 4px; }
+        .msg-theirs { background: #1a1a1a; margin-right: auto; border-bottom-left-radius: 4px; }
         .online-dot { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 8px #22c55e; }
     </style>
 </head>
@@ -19,61 +21,94 @@
     <div class="p-6 flex justify-between items-center app-card">
         <div>
             <h1 class="text-xl font-black italic text-fuchsia-600">SOCIALIZE</h1>
-            <p id="ui-points" class="text-yellow-500 font-bold text-[10px] tracking-widest uppercase">0 SP</p>
+            <p id="ui-points" class="text-yellow-500 font-bold text-[10px] tracking-widest uppercase text-left">0 SP</p>
         </div>
-        <div id="status-light" class="flex items-center gap-2 text-[10px] font-bold text-zinc-500">
+        <div id="status-tag" class="flex items-center gap-2 text-[10px] font-bold text-zinc-500">
             <div class="online-dot"></div> ONLINE
         </div>
     </div>
 
-    <div id="main-content" class="flex-1 overflow-y-auto p-6">
+    <div id="main-content" class="flex-1 overflow-y-auto p-6 space-y-8 pb-24">
         
-        <div id="view-chat" class="space-y-6">
-            <div class="space-y-3">
-                <h3 class="text-[10px] font-black uppercase text-zinc-500">Your Interests</h3>
-                <div id="interests-box" class="flex flex-wrap gap-2">
-                    <div class="interest-chip" onclick="toggleInterest(this, 'Gaming')">Gaming</div>
-                    <div class="interest-chip" onclick="toggleInterest(this, 'Music')">Music</div>
-                    <div class="interest-chip" onclick="toggleInterest(this, 'Coding')">Coding</div>
-                    <div class="interest-chip" onclick="toggleInterest(this, 'Anime')">Anime</div>
-                    <div class="interest-chip" onclick="toggleInterest(this, 'Sports')">Sports</div>
-                </div>
+        <div id="view-chat" class="space-y-4">
+            <h3 class="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Your Interests</h3>
+            <div id="interests-box" class="flex flex-wrap gap-2">
+                <div class="interest-chip" onclick="toggleInterest(this, 'Gaming')">Gaming</div>
+                <div class="interest-chip" onclick="toggleInterest(this, 'Music')">Music</div>
+                <div class="interest-chip" onclick="toggleInterest(this, 'Coding')">Coding</div>
+                <div class="interest-chip" onclick="toggleInterest(this, 'Anime')">Anime</div>
+                <div class="interest-chip" onclick="toggleInterest(this, 'Sports')">Sports</div>
             </div>
 
-            <div class="space-y-3">
-                <div class="flex justify-between items-center">
-                    <h3 class="text-[10px] font-black uppercase text-zinc-500">Users Online</h3>
-                    <button onclick="refreshUsers()" class="material-icons text-sm text-zinc-500">refresh</button>
-                </div>
-                <div id="users-list" class="space-y-2">
-                    </div>
+            <div class="flex justify-between items-center pt-4">
+                <h3 class="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Nearby Peers</h3>
+                <button onclick="refreshUsers()" class="text-zinc-500 hover:text-white transition"><span class="material-icons text-sm">refresh</span></button>
             </div>
+            <div id="users-list" class="space-y-3">
+                </div>
         </div>
 
-        <div id="view-arcade" class="hidden">Arcade Content Here...</div>
-        <div id="view-settings" class="hidden">Settings Content Here...</div>
+        <div id="view-arcade" class="hidden space-y-4 text-center py-10">
+            <span class="material-icons text-6xl text-zinc-800">construction</span>
+            <p class="text-zinc-500 uppercase text-xs font-bold tracking-widest">Arcade loading tomorrow...</p>
+        </div>
+
+        <div id="view-settings" class="hidden space-y-6">
+            <div class="text-center py-10">
+                <h2 class="text-2xl font-black italic flex items-center justify-center gap-2">
+                    <span id="display-name">User</span>
+                    <span id="verified-badge" class="hidden material-icons text-blue-500">verified</span>
+                </h2>
+            </div>
+            <button id="btn-logout" class="w-full bg-red-600/10 text-red-500 py-4 rounded-2xl font-black uppercase text-xs border border-red-600/20">Logout</button>
+        </div>
     </div>
 
-    <nav class="fixed bottom-0 left-0 right-0 app-card border-t flex justify-around p-4 pb-8 z-50">
-        <button onclick="tab('chat')" id="tab-chat" class="text-fuchsia-500"><span class="material-icons">forum</span></button>
-        <button onclick="tab('arcade')" id="tab-arcade" class="text-zinc-600"><span class="material-icons">sports_esports</span></button>
-        <button onclick="tab('settings')" id="tab-settings" class="text-zinc-600"><span class="material-icons">settings</span></button>
+    <div id="chat-modal" class="hidden fixed inset-0 bg-black z-[100] flex flex-col">
+        <div class="p-6 flex justify-between items-center app-card">
+            <div class="flex items-center gap-3">
+                <button onclick="closeChat()" class="material-icons">arrow_back</button>
+                <h2 id="chat-target-name" class="font-black uppercase italic text-sm">Chat</h2>
+            </div>
+            <div class="online-dot"></div>
+        </div>
+        <div id="private-chat-box" class="flex-1 overflow-y-auto p-6 space-y-4"></div>
+        <div class="p-6 bg-zinc-900/50 flex gap-2">
+            <input type="text" id="private-chat-in" placeholder="Type a message..." class="flex-1 bg-zinc-800 p-4 rounded-2xl outline-none border border-white/5 text-sm">
+            <button id="btn-private-send" class="bg-fuchsia-600 p-4 rounded-2xl flex items-center justify-center"><span class="material-icons">send</span></button>
+        </div>
+    </div>
+
+    <nav class="fixed bottom-0 left-0 right-0 app-card border-t flex justify-around p-4 pb-8 z-[50]">
+        <button onclick="tab('chat')" id="tab-chat" class="text-fuchsia-500 transition"><span class="material-icons">forum</span></button>
+        <button onclick="tab('arcade')" id="tab-arcade" class="text-zinc-600 transition"><span class="material-icons">sports_esports</span></button>
+        <button onclick="tab('settings')" id="tab-settings" class="text-zinc-600 transition"><span class="material-icons">settings</span></button>
     </nav>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs, updateDoc, serverTimestamp, addDoc, orderBy, onSnapshot, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyCNl7BW60B6GrHrGx02QaiUbZU3Z3oYlXM", authDomain: "socialize-614d2.firebaseapp.com", projectId: "socialize-614d2", storageBucket: "socialize-614d2.firebasestorage.app", messagingSenderId: "506436447388", appId: "1:506436447388:web:c8d876b69ed57048981159" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        let myInterests = [];
         let currentUser = null;
+        let myInterests = [];
+        let chatUnsub = null;
 
-        // Interest Toggling
+        // Navigation
+        window.tab = (t) => {
+            document.getElementById('view-chat').classList.toggle('hidden', t !== 'chat');
+            document.getElementById('view-arcade').classList.toggle('hidden', t !== 'arcade');
+            document.getElementById('view-settings').classList.toggle('hidden', t !== 'settings');
+            document.querySelectorAll('nav button').forEach(b => b.classList.replace('text-fuchsia-500', 'text-zinc-600'));
+            document.getElementById('tab-' + t).classList.replace('text-zinc-600', 'text-fuchsia-500');
+        };
+
+        // Interests Toggle
         window.toggleInterest = async (el, name) => {
             el.classList.toggle('selected');
             if(myInterests.includes(name)) myInterests = myInterests.filter(i => i !== name);
@@ -85,85 +120,97 @@
             }
         };
 
-        // Real-Time Matchmaking
+        // Live Lobby
         window.refreshUsers = async () => {
             const list = document.getElementById('users-list');
-            list.innerHTML = `<p class="text-[10px] text-zinc-600 text-center py-4">Scanning for matches...</p>`;
+            list.innerHTML = `<p class="text-[10px] text-zinc-700 text-center animate-pulse">SEARCHING LOBBY...</p>`;
 
             const q = query(collection(db, "users"), where("status", "==", "online"));
             const snap = await getDocs(q);
             
-            let users = [];
+            let peers = [];
             snap.forEach(d => {
                 if(d.id !== currentUser.uid) {
                     const data = d.data();
-                    // Calculate similarity score
-                    let score = 0;
-                    if(data.interests) {
-                        score = data.interests.filter(i => myInterests.includes(i)).length;
-                    }
-                    users.push({ id: d.id, ...data, score });
+                    let score = (data.interests || []).filter(i => myInterests.includes(i)).length;
+                    peers.push({ id: d.id, ...data, score });
                 }
             });
 
-            // Sort: highest interest score first
-            users.sort((a, b) => b.score - a.score);
+            peers.sort((a, b) => b.score - a.score);
+            list.innerHTML = peers.length ? "" : `<p class="text-[10px] text-zinc-700 text-center py-4 uppercase">No one is online</p>`;
 
-            list.innerHTML = users.length ? "" : `<p class="text-[10px] text-zinc-600 text-center py-4">No one else is online. Invite a friend!</p>`;
-
-            users.forEach(u => {
+            peers.forEach(u => {
                 const div = document.createElement('div');
-                div.className = "user-row app-card";
+                div.className = "flex items-center justify-between p-4 app-card rounded-2xl";
                 div.innerHTML = `
                     <div class="flex items-center gap-3">
-                        <img src="${u.pfpUrl || 'https://api.dicebear.com/7.x/shapes/svg?seed='+u.id}" class="w-10 h-10 rounded-xl bg-zinc-800">
+                        <div class="w-10 h-10 bg-zinc-800 rounded-xl overflow-hidden"><img src="https://api.dicebear.com/7.x/shapes/svg?seed=${u.id}"></div>
                         <div>
-                            <p class="text-xs font-bold flex items-center gap-1">
-                                ${u.name} ${u.isVerified ? '<span class="material-icons text-blue-500 text-[10px]">verified</span>' : ''}
-                            </p>
-                            <p class="text-[9px] text-fuchsia-500 font-bold">${u.score} Common Interests</p>
+                            <p class="text-xs font-black uppercase italic">${u.name} ${u.isVerified ? '<span class="text-blue-500 material-icons text-[12px] align-middle">verified</span>' : ''}</p>
+                            <p class="text-[9px] text-fuchsia-500 font-bold uppercase">${u.score} Match Score</p>
                         </div>
                     </div>
-                    <button onclick="startChat('${u.id}')" class="bg-white text-black text-[9px] px-4 py-2 rounded-lg font-black uppercase">Chat</button>
+                    <button onclick="openChat('${u.id}', '${u.name}')" class="bg-white text-black px-4 py-2 rounded-xl text-[10px] font-black uppercase">Chat</button>
                 `;
                 list.appendChild(div);
             });
         };
 
+        // Private Messaging
+        window.openChat = async (targetId, targetName) => {
+            document.getElementById('chat-target-name').innerText = targetName;
+            document.getElementById('chat-modal').classList.remove('hidden');
+            const roomId = [currentUser.uid, targetId].sort().join("_");
+            
+            const q = query(collection(db, "rooms", roomId, "messages"), orderBy("createdAt", "asc"));
+            chatUnsub = onSnapshot(q, (snap) => {
+                const box = document.getElementById('private-chat-box');
+                box.innerHTML = "";
+                snap.forEach(d => {
+                    const m = d.data();
+                    const isMe = m.uid === currentUser.uid;
+                    const div = document.createElement('div');
+                    div.className = `msg ${isMe ? 'msg-mine' : 'msg-theirs'}`;
+                    div.innerText = m.text;
+                    box.appendChild(div);
+                });
+                box.scrollTop = box.scrollHeight;
+            });
+
+            document.getElementById('btn-private-send').onclick = async () => {
+                const inp = document.getElementById('private-chat-in');
+                if(!inp.value) return;
+                const text = inp.value; inp.value = "";
+                await addDoc(collection(db, "rooms", roomId, "messages"), { text, uid: currentUser.uid, createdAt: serverTimestamp() });
+                await updateDoc(doc(db, "users", currentUser.uid), { points: increment(2) });
+            };
+        };
+
+        window.closeChat = () => {
+            document.getElementById('chat-modal').classList.add('hidden');
+            if(chatUnsub) chatUnsub();
+        };
+
+        // Auth & Initial Load
         onAuthStateChanged(auth, async (user) => {
             if(!user) return window.location.href = 'index.html';
             currentUser = user;
 
             const userRef = doc(db, "users", user.uid);
-            
-            // Set status to online
-            await setDoc(userRef, { 
-                status: "online", 
-                lastActive: serverTimestamp(),
-                name: user.displayName || user.email.split('@')[0]
-            }, { merge: true });
+            await setDoc(userRef, { status: "online", lastActive: serverTimestamp(), name: user.displayName || user.email.split('@')[0] }, { merge: true });
 
-            // Load my interests
-            const snap = await getDoc(userRef);
-            if(snap.exists() && snap.data().interests) {
-                myInterests = snap.data().interests;
-                document.querySelectorAll('.interest-chip').forEach(chip => {
-                    if(myInterests.includes(chip.innerText)) chip.classList.add('selected');
-                });
-            }
+            onSnapshot(userRef, (s) => {
+                const d = s.data();
+                document.getElementById('ui-points').innerText = (d.points || 0) + " SP";
+                document.getElementById('display-name').innerText = d.name;
+                if(d.isVerified) document.getElementById('verified-badge').classList.remove('hidden');
+            });
 
             refreshUsers();
-            
-            // UI Points Sync
-            onSnapshot(userRef, (s) => {
-                document.getElementById('ui-points').innerText = (s.data()?.points || 0) + " SP";
-            });
         });
 
-        window.startChat = (targetId) => {
-            // This would redirect to a specific chat room ID
-            alert("Connecting to chat with ID: " + targetId);
-        };
+        document.getElementById('btn-logout').onclick = () => { signOut(auth); window.location.href = 'index.html'; };
     </script>
 </body>
 </html>
