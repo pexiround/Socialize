@@ -8,12 +8,10 @@
     <style>
         body { background: #050505; color: white; font-family: 'Inter', sans-serif; overflow: hidden; }
         .app-card { background: #0d0d0d; border: 1px solid rgba(255,255,255,0.05); }
-        .searching { animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
-        .tab-btn.active { color: #d946ef; }
-        .msg { margin-bottom: 8px; padding: 12px; border-radius: 20px; font-size: 13px; max-width: 80%; }
-        .msg-mine { background: #d946ef; margin-left: auto; border-bottom-right-radius: 4px; }
-        .msg-theirs { background: #1a1a1a; margin-right: auto; border-bottom-left-radius: 4px; }
+        .interest-chip { padding: 8px 16px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); font-size: 10px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .interest-chip.selected { background: #d946ef; border-color: #d946ef; color: white; }
+        .user-row { display: flex; align-items: center; justify-content: space-between; padding: 12px; border-radius: 15px; margin-bottom: 8px; background: rgba(255,255,255,0.02); }
+        .online-dot { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 8px #22c55e; }
     </style>
 </head>
 <body class="h-screen flex flex-col">
@@ -23,168 +21,149 @@
             <h1 class="text-xl font-black italic text-fuchsia-600">SOCIALIZE</h1>
             <p id="ui-points" class="text-yellow-500 font-bold text-[10px] tracking-widest uppercase">0 SP</p>
         </div>
-        <div id="search-status" class="hidden text-[10px] font-black text-fuchsia-400 searching uppercase">Finding Match...</div>
+        <div id="status-light" class="flex items-center gap-2 text-[10px] font-bold text-zinc-500">
+            <div class="online-dot"></div> ONLINE
+        </div>
     </div>
 
     <div id="main-content" class="flex-1 overflow-y-auto p-6">
         
-        <div id="view-chat" class="h-full flex flex-col">
-            <div id="chat-box" class="flex-1 overflow-y-auto space-y-4 mb-4">
-                <div id="match-prompt" class="text-center pt-20">
-                    <span class="material-icons text-zinc-800 text-6xl">travel_explore</span>
-                    <p class="text-zinc-500 text-xs mt-4 uppercase font-bold">No active connection</p>
+        <div id="view-chat" class="space-y-6">
+            <div class="space-y-3">
+                <h3 class="text-[10px] font-black uppercase text-zinc-500">Your Interests</h3>
+                <div id="interests-box" class="flex flex-wrap gap-2">
+                    <div class="interest-chip" onclick="toggleInterest(this, 'Gaming')">Gaming</div>
+                    <div class="interest-chip" onclick="toggleInterest(this, 'Music')">Music</div>
+                    <div class="interest-chip" onclick="toggleInterest(this, 'Coding')">Coding</div>
+                    <div class="interest-chip" onclick="toggleInterest(this, 'Anime')">Anime</div>
+                    <div class="interest-chip" onclick="toggleInterest(this, 'Sports')">Sports</div>
                 </div>
             </div>
-            <button id="btn-match" class="w-full bg-white text-black py-4 rounded-2xl font-black uppercase text-xs">Start Searching</button>
-            <div id="chat-ui" class="hidden flex gap-2 pb-20">
-                <input type="text" id="chat-in" placeholder="Say something..." class="flex-1 bg-zinc-900 p-4 rounded-2xl outline-none text-sm border border-white/5">
-                <button id="btn-send" class="bg-fuchsia-600 p-4 rounded-2xl"><span class="material-icons">send</span></button>
+
+            <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-[10px] font-black uppercase text-zinc-500">Users Online</h3>
+                    <button onclick="refreshUsers()" class="material-icons text-sm text-zinc-500">refresh</button>
+                </div>
+                <div id="users-list" class="space-y-2">
+                    </div>
             </div>
         </div>
 
-        <div id="view-arcade" class="hidden space-y-4 pb-24">
-            <div class="app-card p-6 rounded-[30px] flex justify-between items-center border-fuchsia-600/20 border">
-                <div>
-                    <h3 class="font-black text-sm uppercase italic">Daily Bonus</h3>
-                    <p class="text-[10px] text-zinc-500">Claim 50 SP every 24h</p>
-                </div>
-                <button id="btn-daily" class="bg-fuchsia-600 px-6 py-2 rounded-xl font-black text-[10px] uppercase">Claim</button>
-            </div>
-
-            <div class="grid grid-cols-2 gap-3">
-                <div onclick="openGame('hl')" class="app-card p-6 rounded-[30px] text-center cursor-pointer hover:border-fuchsia-500 transition">
-                    <span class="material-icons text-fuchsia-500">swap_vert</span>
-                    <p class="text-[10px] font-black uppercase mt-2">High/Low</p>
-                </div>
-                <div onclick="openGame('qd')" class="app-card p-6 rounded-[30px] text-center cursor-pointer hover:border-fuchsia-500 transition">
-                    <span class="material-icons text-blue-500">bolt</span>
-                    <p class="text-[10px] font-black uppercase mt-2">Quick Draw</p>
-                </div>
-                <div onclick="openGame('pk')" class="app-card p-6 rounded-[30px] text-center cursor-pointer hover:border-fuchsia-500 transition" col-span-2>
-                    <span class="material-icons text-yellow-500">grid_view</span>
-                    <p class="text-[10px] font-black uppercase mt-2">Plinko</p>
-                </div>
-            </div>
-        </div>
-
-        <div id="view-settings" class="hidden space-y-6">
-            <div class="text-center py-10">
-                <div class="relative w-24 h-24 mx-auto mb-4">
-                    <img id="set-pfp" src="" class="w-full h-full rounded-3xl object-cover bg-zinc-800">
-                    <label for="pfp-input" class="absolute bottom-0 right-0 bg-fuchsia-600 p-2 rounded-xl cursor-pointer">
-                        <span class="material-icons text-sm">edit</span>
-                    </label>
-                    <input type="file" id="pfp-input" class="hidden" accept="image/*">
-                </div>
-                <h2 class="text-xl font-black flex items-center justify-center gap-2">
-                    <span id="set-name">User</span>
-                    <span id="set-verify" class="hidden material-icons text-blue-500 text-sm">verified</span>
-                </h2>
-            </div>
-            
-            <button id="btn-logout" class="w-full bg-red-600/10 text-red-500 py-4 rounded-2xl font-black uppercase text-xs border border-red-600/20">Logout</button>
-        </div>
+        <div id="view-arcade" class="hidden">Arcade Content Here...</div>
+        <div id="view-settings" class="hidden">Settings Content Here...</div>
     </div>
 
     <nav class="fixed bottom-0 left-0 right-0 app-card border-t flex justify-around p-4 pb-8 z-50">
-        <button onclick="tab('chat')" id="tab-chat" class="tab-btn active"><span class="material-icons">forum</span></button>
-        <button onclick="tab('arcade')" id="tab-arcade" class="tab-btn text-zinc-600"><span class="material-icons">sports_esports</span></button>
-        <button onclick="tab('settings')" id="tab-settings" class="tab-btn text-zinc-600"><span class="material-icons">settings</span></button>
+        <button onclick="tab('chat')" id="tab-chat" class="text-fuchsia-500"><span class="material-icons">forum</span></button>
+        <button onclick="tab('arcade')" id="tab-arcade" class="text-zinc-600"><span class="material-icons">sports_esports</span></button>
+        <button onclick="tab('settings')" id="tab-settings" class="text-zinc-600"><span class="material-icons">settings</span></button>
     </nav>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, updateDoc, increment, collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyCNl7BW60B6GrHrGx02QaiUbZU3Z3oYlXM", authDomain: "socialize-614d2.firebaseapp.com", projectId: "socialize-614d2", storageBucket: "socialize-614d2.firebasestorage.app", messagingSenderId: "506436447388", appId: "1:506436447388:web:c8d876b69ed57048981159" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const storage = getStorage(app);
 
-        let userPoints = 0;
+        let myInterests = [];
+        let currentUser = null;
 
-        window.tab = (t) => {
-            document.querySelectorAll('[id^="view-"]').forEach(v => v.classList.add('hidden'));
-            document.getElementById('view-' + t).classList.remove('hidden');
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('tab-' + t).classList.add('active');
+        // Interest Toggling
+        window.toggleInterest = async (el, name) => {
+            el.classList.toggle('selected');
+            if(myInterests.includes(name)) myInterests = myInterests.filter(i => i !== name);
+            else myInterests.push(name);
+            
+            if(currentUser) {
+                await updateDoc(doc(db, "users", currentUser.uid), { interests: myInterests });
+                refreshUsers();
+            }
+        };
+
+        // Real-Time Matchmaking
+        window.refreshUsers = async () => {
+            const list = document.getElementById('users-list');
+            list.innerHTML = `<p class="text-[10px] text-zinc-600 text-center py-4">Scanning for matches...</p>`;
+
+            const q = query(collection(db, "users"), where("status", "==", "online"));
+            const snap = await getDocs(q);
+            
+            let users = [];
+            snap.forEach(d => {
+                if(d.id !== currentUser.uid) {
+                    const data = d.data();
+                    // Calculate similarity score
+                    let score = 0;
+                    if(data.interests) {
+                        score = data.interests.filter(i => myInterests.includes(i)).length;
+                    }
+                    users.push({ id: d.id, ...data, score });
+                }
+            });
+
+            // Sort: highest interest score first
+            users.sort((a, b) => b.score - a.score);
+
+            list.innerHTML = users.length ? "" : `<p class="text-[10px] text-zinc-600 text-center py-4">No one else is online. Invite a friend!</p>`;
+
+            users.forEach(u => {
+                const div = document.createElement('div');
+                div.className = "user-row app-card";
+                div.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <img src="${u.pfpUrl || 'https://api.dicebear.com/7.x/shapes/svg?seed='+u.id}" class="w-10 h-10 rounded-xl bg-zinc-800">
+                        <div>
+                            <p class="text-xs font-bold flex items-center gap-1">
+                                ${u.name} ${u.isVerified ? '<span class="material-icons text-blue-500 text-[10px]">verified</span>' : ''}
+                            </p>
+                            <p class="text-[9px] text-fuchsia-500 font-bold">${u.score} Common Interests</p>
+                        </div>
+                    </div>
+                    <button onclick="startChat('${u.id}')" class="bg-white text-black text-[9px] px-4 py-2 rounded-lg font-black uppercase">Chat</button>
+                `;
+                list.appendChild(div);
+            });
         };
 
         onAuthStateChanged(auth, async (user) => {
             if(!user) return window.location.href = 'index.html';
+            currentUser = user;
+
             const userRef = doc(db, "users", user.uid);
+            
+            // Set status to online
+            await setDoc(userRef, { 
+                status: "online", 
+                lastActive: serverTimestamp(),
+                name: user.displayName || user.email.split('@')[0]
+            }, { merge: true });
 
-            const sync = async () => {
-                const s = await getDoc(userRef);
-                const d = s.data() || { points: 100, name: "New User" };
-                userPoints = d.points || 0;
-                document.getElementById('ui-points').innerText = userPoints + " SP";
-                document.getElementById('set-name').innerText = d.name;
-                document.getElementById('set-pfp').src = d.pfpUrl || `https://api.dicebear.com/7.x/shapes/svg?seed=${user.uid}`;
-                if(d.isVerified) document.getElementById('set-verify').classList.remove('hidden');
-            };
+            // Load my interests
+            const snap = await getDoc(userRef);
+            if(snap.exists() && snap.data().interests) {
+                myInterests = snap.data().interests;
+                document.querySelectorAll('.interest-chip').forEach(chip => {
+                    if(myInterests.includes(chip.innerText)) chip.classList.add('selected');
+                });
+            }
 
-            // Daily Reward Logic
-            document.getElementById('btn-daily').onclick = async () => {
-                const s = await getDoc(userRef);
-                const last = s.data()?.lastClaim?.toMillis() || 0;
-                const now = Date.now();
-                if(now - last < 86400000) return alert("Come back tomorrow!");
-                
-                await updateDoc(userRef, { points: increment(50), lastClaim: serverTimestamp() });
-                alert("Claimed 50 SP!");
-                sync();
-            };
-
-            // Matchmaking Simulation
-            document.getElementById('btn-match').onclick = () => {
-                const status = document.getElementById('search-status');
-                const btn = document.getElementById('btn-match');
-                status.classList.remove('hidden');
-                btn.classList.add('hidden');
-
-                setTimeout(() => {
-                    status.classList.add('hidden');
-                    // Logic: Check if messages exist in last hour, if not, show failure
-                    const lucky = Math.random() > 0.3; // 70% chance to find "someone"
-                    if(lucky) {
-                        document.getElementById('match-prompt').classList.add('hidden');
-                        document.getElementById('chat-ui').classList.remove('hidden');
-                    } else {
-                        btn.classList.remove('hidden');
-                        alert("Everyone is busy socializing right now! Try again in a minute.");
-                    }
-                }, 2500);
-            };
-
-            // Settings: PFP Upload
-            document.getElementById('pfp-input').onchange = async (e) => {
-                const file = e.target.files[0];
-                const r = ref(storage, `pfps/${user.uid}`);
-                await uploadBytes(r, file);
-                const url = await getDownloadURL(r);
-                await updateDoc(userRef, { pfpUrl: url });
-                sync();
-            };
-
-            document.getElementById('btn-logout').onclick = () => signOut(auth);
-
-            window.openGame = (g) => {
-                if(g === 'hl') alert("Higher/Lower: Check the previous arcade menu!");
-                if(g === 'qd') alert("Quick Draw: Waiting for opponent...");
-                if(g === 'pk') {
-                    const win = Math.random() > 0.5 ? 20 : -10;
-                    updateDoc(userRef, { points: increment(win) });
-                    alert(win > 0 ? `Plinko landed in 2x! +20 SP` : `Plinko landed in 0.5x! -10 SP`);
-                    sync();
-                }
-            };
-
-            sync();
+            refreshUsers();
+            
+            // UI Points Sync
+            onSnapshot(userRef, (s) => {
+                document.getElementById('ui-points').innerText = (s.data()?.points || 0) + " SP";
+            });
         });
+
+        window.startChat = (targetId) => {
+            // This would redirect to a specific chat room ID
+            alert("Connecting to chat with ID: " + targetId);
+        };
     </script>
 </body>
 </html>
