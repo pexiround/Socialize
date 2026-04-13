@@ -1,28 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Socialize | View</title>
+    <meta charset="UTF-8"><title>Socialize | Profile</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
-        body { background: #080808; color: white; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-        .p-card { background: #121212; border: 1px solid rgba(255,255,255,0.05); width: 380px; border-radius: 40px; padding: 40px; text-align: center; }
+        body { background: #050505; color: white; min-height: 100vh; display: flex; items-center; justify-content: center; font-family: 'Inter', sans-serif; }
         .frame-neon { border: 4px solid #d946ef; box-shadow: 0 0 30px #d946ef; }
         .frame-gold { border: 4px solid #fbbf24; box-shadow: 0 0 30px #fbbf24; }
         .frame-emerald { border: 4px solid #10b981; box-shadow: 0 0 30px #10b981; }
         .frame-void { border: 4px solid #6366f1; border-style: dashed; }
     </style>
 </head>
-<body>
-    <div id="loader" class="text-fuchsia-600 font-black animate-pulse">CONNECTING...</div>
-    
-    <div id="content" class="hidden p-card">
-        <div id="f-box" class="w-32 h-32 mx-auto rounded-3xl overflow-hidden mb-6">
+<body class="p-6">
+    <div id="loader" class="text-fuchsia-600 font-black animate-pulse uppercase text-xs">Syncing Universe...</div>
+
+    <div id="content" class="hidden w-full max-w-[360px] bg-[#0d0d0d] rounded-[40px] p-8 text-center border border-white/5">
+        <div id="f-box" class="w-32 h-32 mx-auto rounded-3xl overflow-hidden mb-6 transition-all border-4 border-transparent">
             <img id="p-img" src="" class="w-full h-full object-cover">
         </div>
-        <h1 id="p-name" class="text-3xl font-black italic flex justify-center items-center gap-2"></h1>
-        <p id="p-title" class="text-[10px] font-black uppercase tracking-[0.4em] text-fuchsia-600 mt-2 mb-6"></p>
-        <div class="bg-white/5 p-6 rounded-3xl border border-white/5"><p id="p-bio" class="text-zinc-400 text-sm italic"></p></div>
+        
+        <h1 id="p-name" class="text-3xl font-black italic flex items-center justify-center gap-2"></h1>
+        <p id="p-title" class="text-[10px] font-black uppercase tracking-[0.4em] text-fuchsia-500 mt-2 mb-6"></p>
+        
+        <div id="p-interests" class="flex flex-wrap justify-center gap-2 mb-6"></div>
+        
+        <div class="bg-black/40 p-6 rounded-3xl border border-white/5 mb-8">
+            <p id="p-bio" class="text-zinc-400 text-sm italic leading-relaxed"></p>
+        </div>
+
+        <button onclick="location.href='index.html'" class="text-[9px] font-black uppercase text-zinc-600 tracking-widest hover:text-fuchsia-500">Create Your Identity</button>
     </div>
 
     <script type="module">
@@ -36,14 +43,23 @@
             const snap = await getDoc(doc(db, "users", uid));
             if(snap.exists()){
                 const d = snap.data();
-                document.getElementById('p-name').innerHTML = (d.name || "User") + (d.isVerified ? ' <span class="material-icons text-blue-500 text-sm">verified</span>' : '');
-                document.getElementById('p-bio').innerText = d.bio || "No bio set.";
+                const nameNode = document.getElementById('p-name');
+                nameNode.innerText = d.name || "User";
+                if(d.isVerified) nameNode.innerHTML += ' <span class="material-icons text-blue-500 text-lg">verified</span>';
+                
+                document.getElementById('p-bio').innerText = d.bio || "Searching for peers...";
                 document.getElementById('p-title').innerText = d.equippedTitle?.split('-')[1] || "";
-                document.getElementById('f-box').className = `w-32 h-32 mx-auto rounded-3xl overflow-hidden mb-6 ${d.equippedFrame || ''}`;
+                document.getElementById('f-box').className = `w-32 h-32 mx-auto rounded-3xl overflow-hidden mb-6 transition-all ${d.equippedFrame || ''}`;
                 document.getElementById('p-img').src = `https://api.dicebear.com/7.x/shapes/svg?seed=${uid}`;
+                
+                const intBox = document.getElementById('p-interests');
+                (d.interests || []).forEach(i => {
+                    intBox.innerHTML += `<span class="px-3 py-1 bg-white/5 border border-white/5 rounded-full text-[8px] font-bold uppercase text-zinc-500">${i}</span>`;
+                });
+
                 document.getElementById('loader').classList.add('hidden');
                 document.getElementById('content').classList.remove('hidden');
-            } else { document.getElementById('loader').innerText = "404: USER NOT FOUND"; }
+            } else { document.getElementById('loader').innerText = "ERROR: USER NOT FOUND"; }
         }
     </script>
 </body>
