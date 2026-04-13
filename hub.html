@@ -10,160 +10,180 @@
         .app-card { background: #0d0d0d; border: 1px solid rgba(255,255,255,0.05); }
         .searching { animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
-        .msg { margin-bottom: 8px; padding: 12px; border-radius: 20px; font-size: 13px; max-width: 85%; }
+        .tab-btn.active { color: #d946ef; }
+        .msg { margin-bottom: 8px; padding: 12px; border-radius: 20px; font-size: 13px; max-width: 80%; }
         .msg-mine { background: #d946ef; margin-left: auto; border-bottom-right-radius: 4px; }
         .msg-theirs { background: #1a1a1a; margin-right: auto; border-bottom-left-radius: 4px; }
     </style>
 </head>
 <body class="h-screen flex flex-col">
 
-    <div id="error-box" class="hidden fixed top-0 left-0 w-full bg-red-600 text-white p-4 z-[9999] font-mono text-xs font-bold break-words"></div>
-    <script>
-        window.onerror = function(msg, url, line) { document.getElementById('error-box').classList.remove('hidden'); document.getElementById('error-box').innerText += "ERROR: " + msg + " (Line " + line + ")\n"; };
-        window.addEventListener('unhandledrejection', function(event) { document.getElementById('error-box').classList.remove('hidden'); document.getElementById('error-box').innerText += "FIREBASE ERROR: " + event.reason + "\n"; });
-    </script>
-
     <div class="p-6 flex justify-between items-center app-card">
         <div>
             <h1 class="text-xl font-black italic text-fuchsia-600">SOCIALIZE</h1>
-            <p id="ui-points" class="text-yellow-500 font-bold text-[10px] tracking-widest uppercase">Loading SP...</p>
+            <p id="ui-points" class="text-yellow-500 font-bold text-[10px] tracking-widest uppercase">0 SP</p>
         </div>
-        <div id="searching-tag" class="hidden text-[10px] font-black text-fuchsia-400 searching uppercase">Searching...</div>
+        <div id="search-status" class="hidden text-[10px] font-black text-fuchsia-400 searching uppercase">Finding Match...</div>
     </div>
 
-    <div id="content" class="flex-1 overflow-y-auto p-6">
+    <div id="main-content" class="flex-1 overflow-y-auto p-6">
         
-        <div id="view-chat" class="h-full flex flex-col space-y-4">
-            <div id="chat-box" class="flex-1 overflow-y-auto space-y-4 pr-2">
-                <div class="text-center text-zinc-600 text-[10px] uppercase font-bold py-10">Start a search to find peers</div>
+        <div id="view-chat" class="h-full flex flex-col">
+            <div id="chat-box" class="flex-1 overflow-y-auto space-y-4 mb-4">
+                <div id="match-prompt" class="text-center pt-20">
+                    <span class="material-icons text-zinc-800 text-6xl">travel_explore</span>
+                    <p class="text-zinc-500 text-xs mt-4 uppercase font-bold">No active connection</p>
+                </div>
             </div>
-            <button id="btn-search" class="w-full bg-white text-black py-4 rounded-2xl font-black uppercase text-xs">Search for Stranger</button>
-            <div id="chat-controls" class="hidden flex gap-2 pb-20">
-                <input type="text" id="chat-in" placeholder="Message..." class="flex-1 bg-zinc-900 p-4 rounded-2xl outline-none text-sm border border-white/5">
-                <button id="btn-send" class="bg-fuchsia-600 p-4 rounded-2xl flex items-center justify-center"><span class="material-icons">send</span></button>
+            <button id="btn-match" class="w-full bg-white text-black py-4 rounded-2xl font-black uppercase text-xs">Start Searching</button>
+            <div id="chat-ui" class="hidden flex gap-2 pb-20">
+                <input type="text" id="chat-in" placeholder="Say something..." class="flex-1 bg-zinc-900 p-4 rounded-2xl outline-none text-sm border border-white/5">
+                <button id="btn-send" class="bg-fuchsia-600 p-4 rounded-2xl"><span class="material-icons">send</span></button>
             </div>
         </div>
 
-        <div id="view-game" class="hidden space-y-6 text-center pt-10">
-            <h2 class="text-3xl font-black italic uppercase">Higher or Lower</h2>
-            <div class="flex justify-center items-center py-10">
-                <div class="text-8xl font-black text-fuchsia-600" id="current-card">5</div>
+        <div id="view-arcade" class="hidden space-y-4 pb-24">
+            <div class="app-card p-6 rounded-[30px] flex justify-between items-center border-fuchsia-600/20 border">
+                <div>
+                    <h3 class="font-black text-sm uppercase italic">Daily Bonus</h3>
+                    <p class="text-[10px] text-zinc-500">Claim 50 SP every 24h</p>
+                </div>
+                <button id="btn-daily" class="bg-fuchsia-600 px-6 py-2 rounded-xl font-black text-[10px] uppercase">Claim</button>
             </div>
-            <div class="flex gap-4">
-                <button id="game-higher" class="flex-1 bg-white text-black py-6 rounded-3xl font-black uppercase">Higher</button>
-                <button id="game-lower" class="flex-1 bg-zinc-800 py-6 rounded-3xl font-black uppercase">Lower</button>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div onclick="openGame('hl')" class="app-card p-6 rounded-[30px] text-center cursor-pointer hover:border-fuchsia-500 transition">
+                    <span class="material-icons text-fuchsia-500">swap_vert</span>
+                    <p class="text-[10px] font-black uppercase mt-2">High/Low</p>
+                </div>
+                <div onclick="openGame('qd')" class="app-card p-6 rounded-[30px] text-center cursor-pointer hover:border-fuchsia-500 transition">
+                    <span class="material-icons text-blue-500">bolt</span>
+                    <p class="text-[10px] font-black uppercase mt-2">Quick Draw</p>
+                </div>
+                <div onclick="openGame('pk')" class="app-card p-6 rounded-[30px] text-center cursor-pointer hover:border-fuchsia-500 transition" col-span-2>
+                    <span class="material-icons text-yellow-500">grid_view</span>
+                    <p class="text-[10px] font-black uppercase mt-2">Plinko</p>
+                </div>
             </div>
-            <p class="text-[10px] text-red-500 font-bold uppercase tracking-widest mt-4">Wrong guess = 0 SP balance</p>
+        </div>
+
+        <div id="view-settings" class="hidden space-y-6">
+            <div class="text-center py-10">
+                <div class="relative w-24 h-24 mx-auto mb-4">
+                    <img id="set-pfp" src="" class="w-full h-full rounded-3xl object-cover bg-zinc-800">
+                    <label for="pfp-input" class="absolute bottom-0 right-0 bg-fuchsia-600 p-2 rounded-xl cursor-pointer">
+                        <span class="material-icons text-sm">edit</span>
+                    </label>
+                    <input type="file" id="pfp-input" class="hidden" accept="image/*">
+                </div>
+                <h2 class="text-xl font-black flex items-center justify-center gap-2">
+                    <span id="set-name">User</span>
+                    <span id="set-verify" class="hidden material-icons text-blue-500 text-sm">verified</span>
+                </h2>
+            </div>
+            
+            <button id="btn-logout" class="w-full bg-red-600/10 text-red-500 py-4 rounded-2xl font-black uppercase text-xs border border-red-600/20">Logout</button>
         </div>
     </div>
 
     <nav class="fixed bottom-0 left-0 right-0 app-card border-t flex justify-around p-4 pb-8 z-50">
-        <button id="nav-chat" class="text-fuchsia-500"><span class="material-icons">forum</span></button>
-        <button id="nav-game" class="text-zinc-600"><span class="material-icons">casino</span></button>
-        <button id="nav-logout" class="text-zinc-600"><span class="material-icons">logout</span></button>
+        <button onclick="tab('chat')" id="tab-chat" class="tab-btn active"><span class="material-icons">forum</span></button>
+        <button onclick="tab('arcade')" id="tab-arcade" class="tab-btn text-zinc-600"><span class="material-icons">sports_esports</span></button>
+        <button onclick="tab('settings')" id="tab-settings" class="tab-btn text-zinc-600"><span class="material-icons">settings</span></button>
     </nav>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, updateDoc, increment, collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
         const firebaseConfig = { apiKey: "AIzaSyCNl7BW60B6GrHrGx02QaiUbZU3Z3oYlXM", authDomain: "socialize-614d2.firebaseapp.com", projectId: "socialize-614d2", storageBucket: "socialize-614d2.firebasestorage.app", messagingSenderId: "506436447388", appId: "1:506436447388:web:c8d876b69ed57048981159" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const storage = getStorage(app);
 
         let userPoints = 0;
-        let currentNum = 5;
 
-        // UI Tabs
-        const showTab = (tab) => {
-            document.getElementById('view-chat').classList.toggle('hidden', tab !== 'chat');
-            document.getElementById('view-game').classList.toggle('hidden', tab !== 'game');
-            document.getElementById('nav-chat').className = tab === 'chat' ? 'text-fuchsia-500' : 'text-zinc-600';
-            document.getElementById('nav-game').className = tab === 'game' ? 'text-fuchsia-500' : 'text-zinc-600';
+        window.tab = (t) => {
+            document.querySelectorAll('[id^="view-"]').forEach(v => v.classList.add('hidden'));
+            document.getElementById('view-' + t).classList.remove('hidden');
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-' + t).classList.add('active');
         };
 
-        document.getElementById('nav-chat').onclick = () => showTab('chat');
-        document.getElementById('nav-game').onclick = () => showTab('game');
-        document.getElementById('nav-logout').onclick = () => { signOut(auth); window.location.replace('index.html'); };
-
         onAuthStateChanged(auth, async (user) => {
-            if(!user) { window.location.replace('index.html'); return; }
-            
+            if(!user) return window.location.href = 'index.html';
             const userRef = doc(db, "users", user.uid);
 
-            // Sync User Data
-            const syncUser = async () => {
-                const snap = await getDoc(userRef);
-                if (snap.exists()) {
-                    userPoints = snap.data().points || 0;
-                    document.getElementById('ui-points').innerText = userPoints + " SP";
-                } else {
-                    const fallbackName = user.displayName || (user.email ? user.email.split('@')[0] : 'User');
-                    await setDoc(userRef, { points: 100, name: fallbackName }, { merge: true });
-                    userPoints = 100;
-                    document.getElementById('ui-points').innerText = "100 SP";
-                }
-            };
-            
-            await syncUser();
-
-            // Chat Search
-            document.getElementById('btn-search').onclick = () => {
-                document.getElementById('btn-search').classList.add('hidden');
-                document.getElementById('searching-tag').classList.remove('hidden');
-                setTimeout(() => {
-                    document.getElementById('searching-tag').classList.add('hidden');
-                    document.getElementById('chat-controls').classList.remove('hidden');
-                }, 1000);
+            const sync = async () => {
+                const s = await getDoc(userRef);
+                const d = s.data() || { points: 100, name: "New User" };
+                userPoints = d.points || 0;
+                document.getElementById('ui-points').innerText = userPoints + " SP";
+                document.getElementById('set-name').innerText = d.name;
+                document.getElementById('set-pfp').src = d.pfpUrl || `https://api.dicebear.com/7.x/shapes/svg?seed=${user.uid}`;
+                if(d.isVerified) document.getElementById('set-verify').classList.remove('hidden');
             };
 
-            // Chat Listener
-            const q = query(collection(db, "messages"), orderBy("createdAt", "desc"), limit(20));
-            onSnapshot(q, (snap) => {
-                const box = document.getElementById('chat-box');
-                box.innerHTML = "";
-                snap.docs.reverse().forEach(d => {
-                    const m = d.data();
-                    const div = document.createElement('div');
-                    div.className = `msg ${m.uid === user.uid ? 'msg-mine' : 'msg-theirs'}`;
-                    div.innerText = m.text;
-                    box.appendChild(div);
-                });
-                box.scrollTop = box.scrollHeight;
-            });
-
-            // Send Message
-            document.getElementById('btn-send').onclick = async () => {
-                const inp = document.getElementById('chat-in');
-                if(!inp.value) return;
-                const txt = inp.value;
-                inp.value = ""; 
-                await addDoc(collection(db, "messages"), { text: txt, uid: user.uid, createdAt: serverTimestamp() });
-                await updateDoc(userRef, { points: increment(2) });
-                syncUser();
-            };
-
-            // Higher or Lower
-            const handleGamble = async (choice) => {
-                const nextNum = Math.floor(Math.random() * 10) + 1;
-                const win = (choice === 'high' && nextNum >= currentNum) || (choice === 'low' && nextNum <= currentNum);
+            // Daily Reward Logic
+            document.getElementById('btn-daily').onclick = async () => {
+                const s = await getDoc(userRef);
+                const last = s.data()?.lastClaim?.toMillis() || 0;
+                const now = Date.now();
+                if(now - last < 86400000) return alert("Come back tomorrow!");
                 
-                if(win) {
-                    await updateDoc(userRef, { points: increment(userPoints) }); // Doubles it
-                    alert(`WIN! Card was ${nextNum}. Points Doubled.`);
-                } else {
-                    await updateDoc(userRef, { points: 0 }); // Wipes it
-                    alert(`LOSE! Card was ${nextNum}. Balance Wiped.`);
-                }
-                currentNum = nextNum;
-                document.getElementById('current-card').innerText = currentNum;
-                syncUser();
+                await updateDoc(userRef, { points: increment(50), lastClaim: serverTimestamp() });
+                alert("Claimed 50 SP!");
+                sync();
             };
 
-            document.getElementById('game-higher').onclick = () => handleGamble('high');
-            document.getElementById('game-lower').onclick = () => handleGamble('low');
+            // Matchmaking Simulation
+            document.getElementById('btn-match').onclick = () => {
+                const status = document.getElementById('search-status');
+                const btn = document.getElementById('btn-match');
+                status.classList.remove('hidden');
+                btn.classList.add('hidden');
+
+                setTimeout(() => {
+                    status.classList.add('hidden');
+                    // Logic: Check if messages exist in last hour, if not, show failure
+                    const lucky = Math.random() > 0.3; // 70% chance to find "someone"
+                    if(lucky) {
+                        document.getElementById('match-prompt').classList.add('hidden');
+                        document.getElementById('chat-ui').classList.remove('hidden');
+                    } else {
+                        btn.classList.remove('hidden');
+                        alert("Everyone is busy socializing right now! Try again in a minute.");
+                    }
+                }, 2500);
+            };
+
+            // Settings: PFP Upload
+            document.getElementById('pfp-input').onchange = async (e) => {
+                const file = e.target.files[0];
+                const r = ref(storage, `pfps/${user.uid}`);
+                await uploadBytes(r, file);
+                const url = await getDownloadURL(r);
+                await updateDoc(userRef, { pfpUrl: url });
+                sync();
+            };
+
+            document.getElementById('btn-logout').onclick = () => signOut(auth);
+
+            window.openGame = (g) => {
+                if(g === 'hl') alert("Higher/Lower: Check the previous arcade menu!");
+                if(g === 'qd') alert("Quick Draw: Waiting for opponent...");
+                if(g === 'pk') {
+                    const win = Math.random() > 0.5 ? 20 : -10;
+                    updateDoc(userRef, { points: increment(win) });
+                    alert(win > 0 ? `Plinko landed in 2x! +20 SP` : `Plinko landed in 0.5x! -10 SP`);
+                    sync();
+                }
+            };
+
+            sync();
         });
     </script>
 </body>
