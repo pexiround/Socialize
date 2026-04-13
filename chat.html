@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><title>Socialize | Chat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        body { background: #050505; color: white; font-family: 'Inter', sans-serif; }
+        .msg { margin-bottom: 12px; padding: 12px; border-radius: 20px; max-width: 85%; font-size: 13px; animation: slideIn 0.2s ease; }
+        .msg-mine { background: #d946ef; margin-left: auto; border-bottom-right-radius: 4px; }
+        .msg-theirs { background: #1a1a1a; margin-right: auto; border-bottom-left-radius: 4px; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="pb-24">
+    <div class="p-6 bg-[#0d0d0d] border-b border-white/5 flex justify-between items-center sticky top-0 z-50">
+        <div>
+            <h2 id="partner-name" class="font-black italic uppercase text-fuchsia-500">Finding Peer...</h2>
+            <p id="partner-status" class="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">Searching Interests</p>
+        </div>
+        <div id="partner-pfp" class="w-10 h-10 rounded-full bg-zinc-800 border border-fuchsia-500/30 overflow-hidden">
+             <img id="p-img" src="" class="w-full h-full object-cover">
+        </div>
+    </div>
+
+    <div id="chat-box" class="p-6 space-y-4 h-[calc(100vh-160px)] overflow-y-auto">
+        </div>
+
+    <div class="fixed bottom-20 left-0 right-0 p-4 bg-gradient-to-t from-black to-transparent">
+        <div class="max-w-md mx-auto flex gap-2">
+            <input type="text" id="chat-in" placeholder="Say something (+2 SP)..." class="flex-1 bg-zinc-900 border border-white/10 p-4 rounded-2xl outline-none text-sm">
+            <button id="btn-send" class="bg-fuchsia-600 p-4 rounded-2xl"><span class="material-icons">send</span></button>
+        </div>
+    </div>
+
+    <nav class="fixed bottom-0 left-0 right-0 bg-[#0d0d0d] border-t border-white/5 flex justify-around p-4 pb-8">
+        <button onclick="location.href='hub.html'" class="text-zinc-600"><span class="material-icons">person</span></button>
+        <button onclick="location.href='chat.html'" class="text-fuchsia-500"><span class="material-icons">forum</span></button>
+        <button onclick="location.href='arcade.html'" class="text-zinc-600"><span class="material-icons">sports_esports</span></button>
+    </nav>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, updateDoc, increment, collection, query, where, limit, getDocs, addDoc, onSnapshot, serverTimestamp, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyCNl7BW60B6GrHrGx02QaiUbZU3Z3oYlXM", authDomain: "socialize-614d2.firebaseapp.com", projectId: "socialize-614d2", storageBucket: "socialize-614d2.firebasestorage.app", messagingSenderId: "506436447388", appId: "1:506436447388:web:c8d876b69ed57048981159" };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        onAuthStateChanged(auth, async (user) => {
+            if(!user) return location.href='index.html';
+            const uData = (await getDoc(doc(db, "users", user.uid))).data();
+            
+            // Matchmaking
+            const q = query(collection(db, "users"), where("interests", "array-contains-any", uData.interests || ["Global"]), limit(5));
+            const snap = await getDocs(q);
+            const peer = snap.docs.find(d => d.id !== user.uid);
+            
+            if(peer) {
+                const p = peer.data();
+                document.getElementById('partner-name').innerText = p.name;
+                document.getElementById('partner-status').innerText = `${p.country} • Similar Interests`;
+                document.getElementById('p-img').src = p.pfpUrl || `https://api.dicebear.com/7.x/shapes/svg?seed=${peer.id}`;
+            } else {
+                document.getElementById('partner-name').innerText = "Global Lobby";
+                document.getElementById('partner-status').innerText = "Waiting for peers...";
+            }
+
+            // Real-time Chat
+            const qChat = query(collection(db, "messages"), orderBy("createdAt", "desc"), limit(30));
+            onSnapshot(qChat, (s) => {
+                const box = document.getElementById('chat-box');
+                box.innerHTML = "";
+                s.docs.reverse().forEach(d => {
+                    const m = d.data();
+                    const div = document.createElement('div');
+                    div.className = `msg ${m.uid === user.uid ? 'msg-mine' : 'msg-theirs'}`;
+                    div.innerHTML = `<p class="text-[8px] font-black uppercase opacity-50 mb-1">${m.name}</p>${m.text}`;
+                    box.appendChild(div);
+                });
+                box.scrollTop = box.scrollHeight;
+            });
+
+            document.getElementById('btn-send').onclick = async () => {
+                const text = document.getElementById('chat-in').value;
+                if(!text) return;
+                document.getElementById('chat-in').value = "";
+                await addDoc(collection(db, "messages"), { text, uid: user.uid, name: uData.name, createdAt: serverTimestamp() });
+                await updateDoc(doc(db, "users", user.uid), { points: increment(2) });
+            };
+        });
+    </script>
+</body>
+</html>
