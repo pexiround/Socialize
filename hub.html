@@ -8,124 +8,115 @@
     <style>
         body { background: #050505; color: white; font-family: 'Inter', sans-serif; overflow: hidden; }
         .app-card { background: #0d0d0d; border: 1px solid rgba(255,255,255,0.05); }
-        .frame-neon { border: 4px solid #d946ef; box-shadow: 0 0 20px #d946ef; }
-        .frame-gold { border: 4px solid #fbbf24; box-shadow: 0 0 20px #fbbf24; }
-        .active-tab { color: #d946ef !important; }
-        .msg { margin-bottom: 10px; padding: 12px; border-radius: 18px; font-size: 13px; max-width: 80%; }
-        .msg-mine { background: #d946ef; margin-left: auto; border-bottom-right-radius: 4px; }
+        .nav-btn.active { color: #d946ef; }
+        .searching { animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
+        .msg { margin-bottom: 8px; padding: 12px 16px; border-radius: 20px; font-size: 13px; display: flex; align-items: flex-end; gap: 8px; }
+        .msg-mine { background: #d946ef; margin-left: auto; flex-direction: row-reverse; border-bottom-right-radius: 4px; }
         .msg-theirs { background: #1a1a1a; margin-right: auto; border-bottom-left-radius: 4px; }
     </style>
 </head>
 <body class="h-screen flex flex-col">
 
-    <div class="p-6 app-card border-b flex justify-between items-center">
+    <div class="p-6 flex justify-between items-center app-card">
         <div>
-            <h1 class="text-xl font-black italic text-fuchsia-600 uppercase">Socialize</h1>
+            <h1 class="text-xl font-black italic text-fuchsia-600">SOCIALIZE</h1>
             <p id="ui-points" class="text-yellow-500 font-bold text-[10px] tracking-widest uppercase">0 SP</p>
         </div>
-        <button id="btn-logout" class="text-zinc-600"><span class="material-icons">logout</span></button>
+        <div id="searching-tag" class="hidden text-[10px] font-black text-fuchsia-400 searching uppercase">Searching...</div>
     </div>
 
-    <div class="flex-1 overflow-y-auto p-6" id="main-view">
+    <div id="content" class="flex-1 overflow-y-auto p-6">
         
-        <div id="view-profile" class="tab-content space-y-6">
-            <div class="app-card rounded-[40px] p-8 text-center relative">
-                <div id="u-frame" class="w-32 h-32 mx-auto mb-4 rounded-3xl overflow-hidden frame-none relative">
-                    <img id="u-pfp" src="https://api.dicebear.com/7.x/shapes/svg?seed=1" class="w-full h-full object-cover">
-                    <label for="pfp-up" class="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 flex items-center justify-center cursor-pointer transition">
-                        <span class="material-icons">add_a_photo</span>
-                    </label>
-                    <input type="file" id="pfp-up" class="hidden" accept="image/*">
-                </div>
-                <h2 id="u-name" class="text-2xl font-black italic">Loading...</h2>
-                <div id="u-badge"></div>
+        <div id="view-chat" class="h-full flex flex-col space-y-4">
+            <div id="chat-box" class="flex-1 overflow-y-auto space-y-4 pr-2">
+                <div class="text-center text-zinc-600 text-[10px] uppercase font-bold py-10">Find someone to start earning SP</div>
             </div>
-
-            <div class="space-y-4">
-                <h3 class="text-[10px] font-black text-zinc-500 uppercase">Shop Preview</h3>
-                <div id="shop-items" class="space-y-2"></div>
+            <button id="btn-search" class="w-full bg-white text-black py-4 rounded-2xl font-black uppercase text-xs mb-2">Search for Stranger</button>
+            <div id="chat-controls" class="hidden flex gap-2 pb-20">
+                <input type="text" id="chat-in" placeholder="Message..." class="flex-1 bg-zinc-900 p-4 rounded-2xl outline-none text-sm border border-white/5">
+                <button id="btn-send" class="bg-fuchsia-600 p-4 rounded-2xl"><span class="material-icons">send</span></button>
             </div>
         </div>
 
-        <div id="view-chat" class="tab-content hidden h-full flex flex-col">
-            <div id="chat-box" class="flex-1 overflow-y-auto space-y-3 mb-4 pr-2"></div>
-            <div class="flex gap-2 pb-24">
-                <input type="text" id="chat-in" placeholder="Message (+2 SP)..." class="flex-1 bg-zinc-900 p-4 rounded-2xl outline-none text-sm">
-                <button id="btn-send" class="bg-fuchsia-600 p-4 rounded-2xl"><span class="material-icons">send</span></button>
+        <div id="view-game" class="hidden space-y-6 text-center pt-10">
+            <h2 class="text-3xl font-black italic uppercase">Higher or Lower</h2>
+            <p class="text-zinc-500 text-xs uppercase">Win double or lose everything</p>
+            
+            <div class="flex justify-center items-center gap-8 py-10">
+                <div class="text-6xl font-black" id="current-card">?</div>
             </div>
+
+            <div class="flex gap-4">
+                <button onclick="playGame('higher')" class="flex-1 bg-fuchsia-600 py-6 rounded-3xl font-black uppercase">Higher</button>
+                <button onclick="playGame('lower')" class="flex-1 bg-zinc-800 py-6 rounded-3xl font-black uppercase">Lower</button>
+            </div>
+            <p class="text-[10px] text-red-500 font-bold uppercase tracking-widest mt-4">Warning: Failure wipes your balance</p>
         </div>
     </div>
 
     <nav class="fixed bottom-0 left-0 right-0 app-card border-t flex justify-around p-4 pb-8 z-50">
-        <button onclick="switchTab('profile')" id="nav-profile" class="active-tab"><span class="material-icons">person</span></button>
-        <button onclick="switchTab('chat')" id="nav-chat" class="text-zinc-600"><span class="material-icons">forum</span></button>
-        <button onclick="alert('Games Coming Tomorrow!')" class="text-zinc-600"><span class="material-icons">sports_esports</span></button>
+        <button onclick="showTab('chat')" id="nav-chat" class="nav-btn active"><span class="material-icons">forum</span></button>
+        <button onclick="showTab('game')" id="nav-game" class="nav-btn text-zinc-600"><span class="material-icons">casino</span></button>
+        <button onclick="location.reload()" class="text-zinc-600"><span class="material-icons">person</span></button>
     </nav>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, updateDoc, increment, collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, updateDoc, increment, collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyCNl7BW60B6GrHrGx02QaiUbZU3Z3oYlXM", authDomain: "socialize-614d2.firebaseapp.com", projectId: "socialize-614d2", storageBucket: "socialize-614d2.firebasestorage.app", messagingSenderId: "506436447388", appId: "1:506436447388:web:c8d876b69ed57048981159" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const storage = getStorage(app);
 
-        const SHOP = [
-            { id: 'frame-neon', name: 'Neon Glow', price: 500 },
-            { id: 'frame-gold', name: 'Royal Gold', price: 2000 }
-        ];
+        let myData = {};
+        let currentNum = Math.floor(Math.random() * 10) + 1;
+        document.getElementById('current-card').innerText = currentNum;
 
-        window.switchTab = (tab) => {
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
-            document.getElementById('view-' + tab).classList.remove('hidden');
+        window.showTab = (t) => {
+            document.getElementById('view-chat').classList.toggle('hidden', t !== 'chat');
+            document.getElementById('view-game').classList.toggle('hidden', t !== 'game');
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('nav-'+t).classList.add('active');
         };
 
         onAuthStateChanged(auth, async (user) => {
-            if (!user) return window.location.href = 'index.html';
-            
+            if(!user) return location.href='index.html';
             const userRef = doc(db, "users", user.uid);
 
             const sync = async () => {
-                const snap = await getDoc(userRef);
-                const d = snap.data() || {};
-                
-                document.getElementById('u-name').innerText = d.name || "User";
-                document.getElementById('ui-points').innerText = (d.points || 0) + " SP";
-                document.getElementById('u-frame').className = `w-32 h-32 mx-auto mb-4 rounded-3xl overflow-hidden relative ${d.equippedFrame || ''}`;
-                document.getElementById('u-pfp').src = d.pfpUrl || `https://api.dicebear.com/7.x/shapes/svg?seed=${user.uid}`;
-                if(d.isVerified) document.getElementById('u-badge').innerHTML = '<span class="material-icons text-blue-500">verified</span>';
-
-                // Shop
-                const shopBox = document.getElementById('shop-items');
-                shopBox.innerHTML = "";
-                SHOP.forEach(item => {
-                    if(d.inventory?.includes(item.id)) return;
-                    const b = document.createElement('div');
-                    b.className = "app-card p-4 rounded-2xl flex justify-between cursor-pointer";
-                    b.innerHTML = `<span class='text-xs font-bold uppercase'>${item.name}</span> <span class='text-fuchsia-500 font-black'>${item.price} SP</span>`;
-                    b.onclick = async () => {
-                        if(d.points < item.price) return alert("Not enough SP");
-                        await updateDoc(userRef, { points: increment(-item.price), inventory: arrayUnion(item.id), equippedFrame: item.id });
-                        sync();
-                    };
-                    shopBox.appendChild(b);
-                });
+                const s = await getDoc(userRef);
+                myData = s.data() || {};
+                document.getElementById('ui-points').innerText = (myData.points || 0) + " SP";
             };
 
-            // Chat Logic
-            const q = query(collection(db, "messages"), orderBy("createdAt", "desc"), limit(20));
-            onSnapshot(q, (s) => {
+            // SEARCH LOGIC
+            document.getElementById('btn-search').onclick = () => {
+                document.getElementById('btn-search').classList.add('hidden');
+                document.getElementById('searching-tag').classList.remove('hidden');
+                setTimeout(() => {
+                    document.getElementById('searching-tag').classList.add('hidden');
+                    document.getElementById('chat-controls').classList.remove('hidden');
+                    // In a real app, this would filter by interests, here it just opens the lobby
+                }, 2000);
+            };
+
+            // CHAT LOGIC (Global Lobby with PFPs)
+            const q = query(collection(db, "messages"), orderBy("createdAt", "desc"), limit(25));
+            onSnapshot(q, (snap) => {
                 const box = document.getElementById('chat-box');
                 box.innerHTML = "";
-                s.docs.reverse().forEach(doc => {
-                    const m = doc.data();
+                snap.docs.reverse().forEach(d => {
+                    const m = d.data();
+                    const isMe = m.uid === user.uid;
                     const div = document.createElement('div');
-                    div.className = `msg ${m.uid === user.uid ? 'msg-mine' : 'msg-theirs'}`;
-                    div.innerText = m.text;
+                    div.className = `msg ${isMe ? 'msg-mine' : 'msg-theirs'}`;
+                    div.innerHTML = `
+                        <img src="${m.pfp || 'https://api.dicebear.com/7.x/shapes/svg?seed='+m.uid}" class="w-6 h-6 rounded-full">
+                        <span>${m.text}</span>
+                    `;
                     box.appendChild(div);
                 });
                 box.scrollTop = box.scrollHeight;
@@ -135,22 +126,27 @@
                 const t = document.getElementById('chat-in').value;
                 if(!t) return;
                 document.getElementById('chat-in').value = "";
-                await addDoc(collection(db, "messages"), { text: t, uid: user.uid, createdAt: serverTimestamp() });
+                await addDoc(collection(db, "messages"), { text: t, uid: user.uid, pfp: myData.pfpUrl || "", createdAt: serverTimestamp() });
                 await updateDoc(userRef, { points: increment(2) });
                 sync();
             };
 
-            // PFP Upload
-            document.getElementById('pfp-up').onchange = async (e) => {
-                const file = e.target.files[0];
-                const sRef = ref(storage, `pfps/${user.uid}`);
-                await uploadBytes(sRef, file);
-                const url = await getDownloadURL(sRef);
-                await updateDoc(userRef, { pfpUrl: url });
+            // GAME LOGIC (The All or Nothing)
+            window.playGame = async (choice) => {
+                const nextNum = Math.floor(Math.random() * 10) + 1;
+                const win = (choice === 'higher' && nextNum >= currentNum) || (choice === 'lower' && nextNum <= currentNum);
+                
+                if(win) {
+                    await updateDoc(userRef, { points: increment(myData.points) });
+                    alert("CORRECT! Balance Doubled.");
+                } else {
+                    await setDoc(userRef, { points: 0 }, { merge: true });
+                    alert("FAILED. Balance wiped to 0.");
+                }
+                currentNum = nextNum;
+                document.getElementById('current-card').innerText = currentNum;
                 sync();
             };
-
-            document.getElementById('btn-logout').onclick = () => signOut(auth);
 
             sync();
         });
