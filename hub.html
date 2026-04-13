@@ -28,39 +28,60 @@
         </div>
     </div>
 
-    <div id="main-content" class="flex-1 overflow-y-auto p-6 space-y-8 pb-24">
+    <div id="main-content" class="flex-1 overflow-y-auto p-6 pb-24">
         
-        <div id="view-chat" class="space-y-4">
-            <h3 class="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Your Interests</h3>
-            <div id="interests-box" class="flex flex-wrap gap-2">
-                <div class="interest-chip" onclick="toggleInterest(this, 'Gaming')">Gaming</div>
-                <div class="interest-chip" onclick="toggleInterest(this, 'Music')">Music</div>
-                <div class="interest-chip" onclick="toggleInterest(this, 'Coding')">Coding</div>
-                <div class="interest-chip" onclick="toggleInterest(this, 'Anime')">Anime</div>
-                <div class="interest-chip" onclick="toggleInterest(this, 'Sports')">Sports</div>
+        <div id="view-chat" class="space-y-6">
+            <div class="space-y-4">
+                <h3 class="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Your Interests</h3>
+                <div id="interests-box" class="flex flex-wrap gap-2">
+                    <div class="interest-chip" onclick="toggleInterest(this, 'Gaming')">Gaming</div>
+                    <div class="interest-chip" onclick="toggleInterest(this, 'Music')">Music</div>
+                    <div class="interest-chip" onclick="toggleInterest(this, 'Coding')">Coding</div>
+                    <div class="interest-chip" onclick="toggleInterest(this, 'Anime')">Anime</div>
+                    <div class="interest-chip" onclick="toggleInterest(this, 'Sports')">Sports</div>
+                </div>
             </div>
 
-            <div class="flex justify-between items-center pt-4">
+            <div class="flex justify-between items-center pt-4 border-t border-white/5">
                 <h3 class="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Nearby Peers</h3>
                 <button onclick="refreshUsers()" class="text-zinc-500 hover:text-white transition"><span class="material-icons text-sm">refresh</span></button>
             </div>
-            <div id="users-list" class="space-y-3">
-                </div>
+            <div id="users-list" class="space-y-3"></div>
         </div>
 
-        <div id="view-arcade" class="hidden space-y-4 text-center py-10">
-            <span class="material-icons text-6xl text-zinc-800">construction</span>
-            <p class="text-zinc-500 uppercase text-xs font-bold tracking-widest">Arcade loading tomorrow...</p>
+        <div id="view-arcade" class="hidden space-y-4">
+            <div class="app-card p-6 rounded-[30px] flex justify-between items-center border border-fuchsia-600/20">
+                <div>
+                    <h3 class="font-black text-sm uppercase italic">Daily Bonus</h3>
+                    <p class="text-[10px] text-zinc-500">Get 50 SP for logging in</p>
+                </div>
+                <button id="btn-daily" class="bg-fuchsia-600 px-6 py-2 rounded-xl font-black text-[10px] uppercase">Claim</button>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div class="app-card p-8 rounded-[30px] text-center opacity-50">
+                    <span class="material-icons text-fuchsia-500">bolt</span>
+                    <p class="text-[10px] font-black uppercase mt-2">Quick Draw</p>
+                </div>
+                <div class="app-card p-8 rounded-[30px] text-center opacity-50">
+                    <span class="material-icons text-yellow-500">grid_view</span>
+                    <p class="text-[10px] font-black uppercase mt-2">Plinko</p>
+                </div>
+            </div>
+            <p class="text-center text-zinc-600 text-[10px] uppercase font-bold py-4 italic">Games Coming Soon</p>
         </div>
 
         <div id="view-settings" class="hidden space-y-6">
-            <div class="text-center py-10">
+            <div class="text-center py-10 app-card rounded-[40px] border border-white/5">
+                <div class="w-24 h-24 bg-zinc-800 rounded-3xl mx-auto mb-4 overflow-hidden border-2 border-fuchsia-600/20">
+                    <img id="my-pfp" src="https://api.dicebear.com/7.x/shapes/svg?seed=default" class="w-full h-full object-cover">
+                </div>
                 <h2 class="text-2xl font-black italic flex items-center justify-center gap-2">
                     <span id="display-name">User</span>
                     <span id="verified-badge" class="hidden material-icons text-blue-500">verified</span>
                 </h2>
+                <p class="text-[10px] text-zinc-500 uppercase tracking-widest mt-1">Profile Verified</p>
             </div>
-            <button id="btn-logout" class="w-full bg-red-600/10 text-red-500 py-4 rounded-2xl font-black uppercase text-xs border border-red-600/20">Logout</button>
+            <button id="btn-logout" class="w-full bg-red-600/10 text-red-500 py-4 rounded-2xl font-black uppercase text-xs border border-red-600/20 hover:bg-red-600 hover:text-white transition">Logout Account</button>
         </div>
     </div>
 
@@ -79,7 +100,7 @@
         </div>
     </div>
 
-    <nav class="fixed bottom-0 left-0 right-0 app-card border-t flex justify-around p-4 pb-8 z-[50]">
+    <nav class="fixed bottom-0 left-0 right-0 app-card border-t border-white/5 flex justify-around p-4 pb-8 z-[50]">
         <button onclick="tab('chat')" id="tab-chat" class="text-fuchsia-500 transition"><span class="material-icons">forum</span></button>
         <button onclick="tab('arcade')" id="tab-arcade" class="text-zinc-600 transition"><span class="material-icons">sports_esports</span></button>
         <button onclick="tab('settings')" id="tab-settings" class="text-zinc-600 transition"><span class="material-icons">settings</span></button>
@@ -99,35 +120,35 @@
         let myInterests = [];
         let chatUnsub = null;
 
-        // Navigation
+        // TAB NAVIGATION SYSTEM
         window.tab = (t) => {
-            document.getElementById('view-chat').classList.toggle('hidden', t !== 'chat');
-            document.getElementById('view-arcade').classList.toggle('hidden', t !== 'arcade');
-            document.getElementById('view-settings').classList.toggle('hidden', t !== 'settings');
-            document.querySelectorAll('nav button').forEach(b => b.classList.replace('text-fuchsia-500', 'text-zinc-600'));
+            const views = ['view-chat', 'view-arcade', 'view-settings'];
+            const tabs = ['tab-chat', 'tab-arcade', 'tab-settings'];
+            
+            views.forEach(v => document.getElementById(v).classList.add('hidden'));
+            document.getElementById('view-' + t).classList.remove('hidden');
+            
+            tabs.forEach(tabId => {
+                const btn = document.getElementById(tabId);
+                btn.classList.remove('text-fuchsia-500');
+                btn.classList.add('text-zinc-600');
+            });
             document.getElementById('tab-' + t).classList.replace('text-zinc-600', 'text-fuchsia-500');
         };
 
-        // Interests Toggle
         window.toggleInterest = async (el, name) => {
             el.classList.toggle('selected');
             if(myInterests.includes(name)) myInterests = myInterests.filter(i => i !== name);
             else myInterests.push(name);
-            
-            if(currentUser) {
-                await updateDoc(doc(db, "users", currentUser.uid), { interests: myInterests });
-                refreshUsers();
-            }
+            if(currentUser) await updateDoc(doc(db, "users", currentUser.uid), { interests: myInterests });
+            refreshUsers();
         };
 
-        // Live Lobby
         window.refreshUsers = async () => {
             const list = document.getElementById('users-list');
-            list.innerHTML = `<p class="text-[10px] text-zinc-700 text-center animate-pulse">SEARCHING LOBBY...</p>`;
-
+            list.innerHTML = `<p class="text-[10px] text-zinc-700 text-center animate-pulse py-10 uppercase tracking-widest">Searching Lobby...</p>`;
             const q = query(collection(db, "users"), where("status", "==", "online"));
             const snap = await getDocs(q);
-            
             let peers = [];
             snap.forEach(d => {
                 if(d.id !== currentUser.uid) {
@@ -136,48 +157,42 @@
                     peers.push({ id: d.id, ...data, score });
                 }
             });
-
             peers.sort((a, b) => b.score - a.score);
-            list.innerHTML = peers.length ? "" : `<p class="text-[10px] text-zinc-700 text-center py-4 uppercase">No one is online</p>`;
-
+            list.innerHTML = peers.length ? "" : `<p class="text-[10px] text-zinc-700 text-center py-10 uppercase tracking-widest">Lobby Empty</p>`;
             peers.forEach(u => {
                 const div = document.createElement('div');
-                div.className = "flex items-center justify-between p-4 app-card rounded-2xl";
+                div.className = "flex items-center justify-between p-4 app-card rounded-2xl border border-white/5";
                 div.innerHTML = `
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 bg-zinc-800 rounded-xl overflow-hidden"><img src="https://api.dicebear.com/7.x/shapes/svg?seed=${u.id}"></div>
                         <div>
-                            <p class="text-xs font-black uppercase italic">${u.name} ${u.isVerified ? '<span class="text-blue-500 material-icons text-[12px] align-middle">verified</span>' : ''}</p>
+                            <p class="text-xs font-black uppercase italic">${u.name || 'User'} ${u.isVerified ? '<span class="text-blue-500 material-icons text-[12px] align-middle">verified</span>' : ''}</p>
                             <p class="text-[9px] text-fuchsia-500 font-bold uppercase">${u.score} Match Score</p>
                         </div>
                     </div>
-                    <button onclick="openChat('${u.id}', '${u.name}')" class="bg-white text-black px-4 py-2 rounded-xl text-[10px] font-black uppercase">Chat</button>
+                    <button onclick="openChat('${u.id}', '${u.name || 'User'}')" class="bg-white text-black px-4 py-2 rounded-xl text-[10px] font-black uppercase transition active:scale-95">Chat</button>
                 `;
                 list.appendChild(div);
             });
         };
 
-        // Private Messaging
         window.openChat = async (targetId, targetName) => {
             document.getElementById('chat-target-name').innerText = targetName;
             document.getElementById('chat-modal').classList.remove('hidden');
             const roomId = [currentUser.uid, targetId].sort().join("_");
-            
             const q = query(collection(db, "rooms", roomId, "messages"), orderBy("createdAt", "asc"));
             chatUnsub = onSnapshot(q, (snap) => {
                 const box = document.getElementById('private-chat-box');
                 box.innerHTML = "";
                 snap.forEach(d => {
                     const m = d.data();
-                    const isMe = m.uid === currentUser.uid;
                     const div = document.createElement('div');
-                    div.className = `msg ${isMe ? 'msg-mine' : 'msg-theirs'}`;
+                    div.className = `msg ${m.uid === currentUser.uid ? 'msg-mine' : 'msg-theirs'}`;
                     div.innerText = m.text;
                     box.appendChild(div);
                 });
                 box.scrollTop = box.scrollHeight;
             });
-
             document.getElementById('btn-private-send').onclick = async () => {
                 const inp = document.getElementById('private-chat-in');
                 if(!inp.value) return;
@@ -192,25 +207,34 @@
             if(chatUnsub) chatUnsub();
         };
 
-        // Auth & Initial Load
         onAuthStateChanged(auth, async (user) => {
             if(!user) return window.location.href = 'index.html';
             currentUser = user;
-
             const userRef = doc(db, "users", user.uid);
-            await setDoc(userRef, { status: "online", lastActive: serverTimestamp(), name: user.displayName || user.email.split('@')[0] }, { merge: true });
+            await setDoc(userRef, { status: "online", lastActive: serverTimestamp() }, { merge: true });
 
             onSnapshot(userRef, (s) => {
                 const d = s.data();
+                if(!d) return;
                 document.getElementById('ui-points').innerText = (d.points || 0) + " SP";
-                document.getElementById('display-name').innerText = d.name;
+                document.getElementById('display-name').innerText = d.name || "Unknown";
+                document.getElementById('my-pfp').src = `https://api.dicebear.com/7.x/shapes/svg?seed=${user.uid}`;
                 if(d.isVerified) document.getElementById('verified-badge').classList.remove('hidden');
             });
-
             refreshUsers();
         });
 
-        document.getElementById('btn-logout').onclick = () => { signOut(auth); window.location.href = 'index.html'; };
+        document.getElementById('btn-logout').onclick = () => { signOut(auth); };
+        
+        // DAILY REWARD LOGIC
+        document.getElementById('btn-daily').onclick = async () => {
+            const userRef = doc(db, "users", currentUser.uid);
+            const snap = await getDoc(userRef);
+            const last = snap.data()?.lastClaim?.toMillis() || 0;
+            if(Date.now() - last < 86400000) return alert("You already claimed today!");
+            await updateDoc(userRef, { points: increment(50), lastClaim: serverTimestamp() });
+            alert("50 SP Claimed!");
+        };
     </script>
 </body>
 </html>
