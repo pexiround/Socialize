@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><title>Socialize | Arcade</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>body { background: #050505; color: white; font-family: 'Inter', sans-serif; }</style>
+</head>
+<body class="p-6 pb-24">
+    <h1 class="text-2xl font-black italic uppercase text-fuchsia-600 mb-6">Social Arcade</h1>
+
+    <div class="space-y-4 max-w-md mx-auto">
+        <div class="bg-zinc-900/50 p-8 rounded-[40px] border-2 border-yellow-500/20 text-center">
+            <h3 class="text-[10px] font-black uppercase text-yellow-500 tracking-widest mb-2">Global Pot</h3>
+            <div id="pot-val" class="text-4xl font-black mb-4">0 SP</div>
+            <button id="btn-pot" class="w-full bg-yellow-600 py-4 rounded-2xl font-black uppercase text-xs">Enter Pot (50 SP)</button>
+        </div>
+
+        <div class="bg-[#0d0d0d] p-6 rounded-[40px] border border-white/5">
+            <h3 class="text-[10px] font-black uppercase text-zinc-500 mb-4 tracking-widest">Referral Kings</h3>
+            <div id="leader-list" class="space-y-2">
+                </div>
+        </div>
+    </div>
+
+    <nav class="fixed bottom-0 left-0 right-0 bg-[#0d0d0d] border-t border-white/5 flex justify-around p-4 pb-8">
+        <button onclick="location.href='hub.html'" class="text-zinc-600"><span class="material-icons">person</span></button>
+        <button onclick="location.href='chat.html'" class="text-zinc-600"><span class="material-icons">forum</span></button>
+        <button onclick="location.href='arcade.html'" class="text-fuchsia-500"><span class="material-icons">sports_esports</span></button>
+    </nav>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, onSnapshot, updateDoc, increment, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyCNl7BW60B6GrHrGx02QaiUbZU3Z3oYlXM", authDomain: "socialize-614d2.firebaseapp.com", projectId: "socialize-614d2", storageBucket: "socialize-614d2.firebasestorage.app", messagingSenderId: "506436447388", appId: "1:506436447388:web:c8d876b69ed57048981159" };
+        const db = getFirestore(initializeApp(firebaseConfig));
+        const auth = getAuth();
+
+        // Pot Logic
+        onSnapshot(doc(db, "system", "global_pot"), (s) => {
+            document.getElementById('pot-val').innerText = (s.data()?.amount || 0) + " SP";
+        });
+
+        document.getElementById('btn-pot').onclick = async () => {
+            const u = auth.currentUser;
+            if(!u) return;
+            await updateDoc(doc(db, "system", "global_pot"), { amount: increment(50) });
+            await updateDoc(doc(db, "users", u.uid), { points: increment(-50) });
+            alert("Entered the Jackpot!");
+        };
+
+        // Leaderboard
+        const q = query(collection(db, "users"), orderBy("referralCount", "desc"), limit(5));
+        const snap = await getDocs(q);
+        const list = document.getElementById('leader-list');
+        list.innerHTML = "";
+        snap.forEach(d => {
+            list.innerHTML += `<div class="flex justify-between p-3 bg-white/5 rounded-2xl"><span class="text-xs font-bold">${d.data().name}</span><span class="text-fuchsia-500 font-black text-xs">${d.data().referralCount || 0} REFS</span></div>`;
+        });
+    </script>
+</body>
+</html>
