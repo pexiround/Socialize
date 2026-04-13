@@ -7,13 +7,19 @@
 </head>
 <body class="bg-[#050505] text-white flex items-center justify-center min-h-screen">
 
-    <div id="loading-screen" class="fixed inset-0 bg-black z-[100] flex items-center justify-center font-black italic text-fuchsia-600">LOADING...</div>
+    <div id="error-box" class="hidden fixed top-0 left-0 w-full bg-red-600 text-white p-4 z-[9999] font-mono text-xs font-bold break-words"></div>
+    <script>
+        window.onerror = function(msg, url, line) { document.getElementById('error-box').classList.remove('hidden'); document.getElementById('error-box').innerText += "ERROR: " + msg + " (Line " + line + ")\n"; };
+        window.addEventListener('unhandledrejection', function(event) { document.getElementById('error-box').classList.remove('hidden'); document.getElementById('error-box').innerText += "FIREBASE ERROR: " + event.reason + "\n"; });
+    </script>
+
+    <div id="loading-screen" class="fixed inset-0 bg-[#050505] z-[100] flex items-center justify-center font-black italic text-fuchsia-600 text-2xl">LOADING...</div>
 
     <div class="w-full max-w-sm p-6 space-y-6 text-center">
         <h1 class="text-5xl font-black italic text-fuchsia-600 uppercase">Socialize</h1>
         <div class="space-y-3">
-            <input type="email" id="email" placeholder="Email" class="w-full bg-zinc-900 p-4 rounded-2xl outline-none border border-white/5">
-            <input type="password" id="pass" placeholder="Password" class="w-full bg-zinc-900 p-4 rounded-2xl outline-none border border-white/5">
+            <input type="email" id="in-email" placeholder="Email" class="w-full bg-zinc-900 p-4 rounded-2xl outline-none border border-white/5">
+            <input type="password" id="in-pass" placeholder="Password" class="w-full bg-zinc-900 p-4 rounded-2xl outline-none border border-white/5">
         </div>
         <button id="btn-login" class="w-full bg-white text-black py-4 rounded-2xl font-black uppercase text-xs">Login</button>
         <button id="btn-google" class="w-full bg-fuchsia-600 py-4 rounded-2xl font-black uppercase text-xs">Google Access</button>
@@ -28,12 +34,17 @@
         const auth = getAuth(app);
 
         onAuthStateChanged(auth, (user) => {
-            if(user) { window.location.href = 'hub.html'; }
+            if(user) { window.location.replace('hub.html'); }
             else { document.getElementById('loading-screen').classList.add('hidden'); }
         });
 
-        document.getElementById('btn-login').onclick = () => signInWithEmailAndPassword(auth, email.value, pass.value).catch(e => alert(e.message));
-        document.getElementById('btn-google').onclick = () => signInWithPopup(auth, new GoogleAuthProvider());
+        document.getElementById('btn-login').onclick = () => {
+            const e = document.getElementById('in-email').value;
+            const p = document.getElementById('in-pass').value;
+            signInWithEmailAndPassword(auth, e, p).catch(err => alert(err.message));
+        };
+        
+        document.getElementById('btn-google').onclick = () => signInWithPopup(auth, new GoogleAuthProvider()).catch(err => alert(err.message));
     </script>
 </body>
 </html>
