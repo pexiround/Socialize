@@ -4,47 +4,82 @@
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Socialize | Join</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #050505; color: white; font-family: 'Inter', sans-serif; }
+        .input-box { background: #0d0d0d; border: 1px solid rgba(255,255,255,0.05); }
+    </style>
 </head>
-<body class="bg-[#050505] text-white flex items-center justify-center min-h-screen">
+<body class="h-screen flex items-center justify-center p-6">
 
-    <div id="error-box" class="hidden fixed top-0 left-0 w-full bg-red-600 text-white p-4 z-[9999] font-mono text-xs font-bold break-words"></div>
-    <script>
-        window.onerror = function(msg, url, line) { document.getElementById('error-box').classList.remove('hidden'); document.getElementById('error-box').innerText += "ERROR: " + msg + " (Line " + line + ")\n"; };
-        window.addEventListener('unhandledrejection', function(event) { document.getElementById('error-box').classList.remove('hidden'); document.getElementById('error-box').innerText += "FIREBASE ERROR: " + event.reason + "\n"; });
-    </script>
-
-    <div id="loading-screen" class="fixed inset-0 bg-[#050505] z-[100] flex items-center justify-center font-black italic text-fuchsia-600 text-2xl">LOADING...</div>
-
-    <div class="w-full max-w-sm p-6 space-y-6 text-center">
-        <h1 class="text-5xl font-black italic text-fuchsia-600 uppercase">Socialize</h1>
-        <div class="space-y-3">
-            <input type="email" id="in-email" placeholder="Email" class="w-full bg-zinc-900 p-4 rounded-2xl outline-none border border-white/5">
-            <input type="password" id="in-pass" placeholder="Password" class="w-full bg-zinc-900 p-4 rounded-2xl outline-none border border-white/5">
+    <div class="w-full max-w-sm space-y-6">
+        <div class="text-center">
+            <h1 class="text-4xl font-black italic text-fuchsia-600">SOCIALIZE</h1>
+            <p class="text-zinc-500 text-[10px] uppercase tracking-widest mt-2">Connect with intent</p>
         </div>
-        <button id="btn-login" class="w-full bg-white text-black py-4 rounded-2xl font-black uppercase text-xs">Login</button>
-        <button id="btn-google" class="w-full bg-fuchsia-600 py-4 rounded-2xl font-black uppercase text-xs">Google Access</button>
+
+        <div class="space-y-3">
+            <input type="text" id="name" placeholder="Display Name" class="w-full input-box p-4 rounded-2xl outline-none text-sm">
+            <input type="email" id="email" placeholder="Email" class="w-full input-box p-4 rounded-2xl outline-none text-sm">
+            <input type="password" id="pass" placeholder="Password" class="w-full input-box p-4 rounded-2xl outline-none text-sm">
+            <button onclick="signUp()" class="w-full bg-fuchsia-600 py-4 rounded-2xl font-black uppercase text-xs">Create Account</button>
+            <p class="text-center text-[10px] text-zinc-600">Already have an account? <button onclick="login()" class="text-white">Login</button></p>
+        </div>
+    </div>
+
+    <div id="privacy-modal" class="hidden fixed inset-0 bg-black/90 z-[200] flex items-center justify-center p-6">
+        <div class="bg-zinc-900 w-full max-w-md rounded-[40px] p-8 border border-white/10 space-y-4">
+            <h2 class="text-xl font-black italic text-fuchsia-600 uppercase">Privacy Policy</h2>
+            <div class="text-[11px] text-zinc-400 space-y-3 leading-relaxed max-h-60 overflow-y-auto pr-2">
+                <p><strong>1. Data Collection:</strong> We collect your email and display name for account identification.</p>
+                <p><strong>2. Messaging:</strong> Your chats are stored securely in Cloud Firestore for your access.</p>
+                <p><strong>3. Status:</strong> Your online status is shared only while you are active on the site.</p>
+                <p><strong>4. Security:</strong> We do not sell your data.</p>
+                <p class="pt-2 text-zinc-300 font-bold uppercase underline">Support: socializesupport@gmail.com</p>
+            </div>
+            <div class="flex gap-3 pt-4">
+                <button onclick="document.getElementById('privacy-modal').classList.add('hidden')" class="flex-1 text-zinc-500 font-bold uppercase text-[10px]">Decline</button>
+                <button id="btn-accept-policy" class="flex-1 bg-fuchsia-600 py-3 rounded-xl font-black text-[10px] uppercase">Accept & Create</button>
+            </div>
+        </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
         const firebaseConfig = { apiKey: "AIzaSyCNl7BW60B6GrHrGx02QaiUbZU3Z3oYlXM", authDomain: "socialize-614d2.firebaseapp.com", projectId: "socialize-614d2", storageBucket: "socialize-614d2.firebasestorage.app", messagingSenderId: "506436447388", appId: "1:506436447388:web:c8d876b69ed57048981159" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        const db = getFirestore(app);
 
-        onAuthStateChanged(auth, (user) => {
-            if(user) { window.location.replace('hub.html'); }
-            else { document.getElementById('loading-screen').classList.add('hidden'); }
-        });
+        window.signUp = () => {
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('pass').value;
+            const name = document.getElementById('name').value;
+            if(!email || !pass || !name) return alert("Fill everything in!");
 
-        document.getElementById('btn-login').onclick = () => {
-            const e = document.getElementById('in-email').value;
-            const p = document.getElementById('in-pass').value;
-            signInWithEmailAndPassword(auth, e, p).catch(err => alert(err.message));
+            document.getElementById('privacy-modal').classList.remove('hidden');
+
+            document.getElementById('btn-accept-policy').onclick = async () => {
+                try {
+                    const res = await createUserWithEmailAndPassword(auth, email, pass);
+                    await setDoc(doc(db, "users", res.user.uid), {
+                        name, points: 100, status: "online", lastActive: serverTimestamp(), acceptedPolicy: true
+                    });
+                    window.location.href = 'hub.html';
+                } catch (e) { alert(e.message); }
+            };
         };
-        
-        document.getElementById('btn-google').onclick = () => signInWithPopup(auth, new GoogleAuthProvider()).catch(err => alert(err.message));
+
+        window.login = async () => {
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('pass').value;
+            try {
+                await signInWithEmailAndPassword(auth, email, pass);
+                window.location.href = 'hub.html';
+            } catch (e) { alert(e.message); }
+        };
     </script>
 </body>
 </html>
