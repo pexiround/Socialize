@@ -1,23 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Socialize | Join</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;900&display=swap" rel="stylesheet">
     <style>
         body { background: #050505; color: white; font-family: 'Inter', sans-serif; }
         .input-box { background: #0d0d0d; border: 1px solid rgba(255,255,255,0.05); }
-        /* Extra safety if Tailwind is slow */
         .hidden { display: none !important; }
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
     </style>
 </head>
 <body class="h-screen flex items-center justify-center p-6">
 
-    <div id="login-card" class="w-full max-w-sm space-y-6">
+    <div class="w-full max-w-sm space-y-6">
         <div class="text-center">
             <h1 class="text-4xl font-black italic text-fuchsia-600">SOCIALIZE</h1>
             <p class="text-zinc-500 text-[10px] uppercase tracking-widest mt-2">Connect with intent</p>
@@ -27,35 +22,28 @@
             <input type="text" id="name" placeholder="Display Name" class="w-full input-box p-4 rounded-2xl outline-none text-sm focus:ring-1 focus:ring-fuchsia-600">
             <input type="email" id="email" placeholder="Email" class="w-full input-box p-4 rounded-2xl outline-none text-sm">
             <input type="password" id="pass" placeholder="Password" class="w-full input-box p-4 rounded-2xl outline-none text-sm">
+            <button onclick="showPolicy('email')" class="w-full bg-fuchsia-600 py-4 rounded-2xl font-black uppercase text-xs">Create Account</button>
             
-            <button onclick="showPolicy('email')" class="w-full bg-fuchsia-600 py-4 rounded-2xl font-black uppercase text-xs hover:bg-fuchsia-500 transition-all">Create Account</button>
-            
-            <div class="flex items-center py-2">
-                <div class="flex-grow border-t border-white/5"></div>
-                <span class="mx-4 text-zinc-700 text-[9px] font-bold uppercase">OR</span>
-                <div class="flex-grow border-t border-white/5"></div>
-            </div>
+            <div class="flex items-center py-2"><div class="flex-grow border-t border-white/5"></div><span class="mx-4 text-zinc-700 text-[9px] font-bold uppercase">OR</span><div class="flex-grow border-t border-white/5"></div></div>
 
-            <button onclick="showPolicy('google')" class="w-full bg-white text-black py-4 rounded-2xl font-black uppercase text-xs flex items-center justify-center gap-2 hover:bg-zinc-200 transition-all">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/pwa_inc_64.png" class="w-4 h-4"> Sign in with Google
+            <button onclick="showPolicy('google')" class="w-full bg-white text-black py-4 rounded-2xl font-black uppercase text-xs flex items-center justify-center gap-2">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/pwa_inc_64.png" class="w-4 h-4"> Google Sign In
             </button>
-
-            <p class="text-center text-[10px] text-zinc-600 pt-4">Already have an account? <button onclick="login()" class="text-white hover:underline">Login</button></p>
+            <p class="text-center text-[10px] text-zinc-600 pt-2">Already have an account? <button onclick="login()" class="text-white">Login</button></p>
         </div>
     </div>
 
     <div id="privacy-modal" class="hidden fixed inset-0 bg-black/95 z-[200] flex items-center justify-center p-6 backdrop-blur-sm">
-        <div class="bg-zinc-900 w-full max-w-md rounded-[40px] p-8 border border-white/10 shadow-2xl space-y-4">
+        <div class="bg-zinc-900 w-full max-w-md rounded-[40px] p-8 border border-white/10 space-y-4">
             <h2 class="text-xl font-black italic text-fuchsia-600 uppercase">Privacy Policy</h2>
-            <div class="text-[11px] text-zinc-400 space-y-3 leading-relaxed max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+            <div class="text-[11px] text-zinc-400 space-y-3 leading-relaxed max-h-60 overflow-y-auto pr-2">
                 <p><strong>1. Data Collection:</strong> We collect your email and display name for account identification.</p>
-                <p><strong>2. Messaging:</strong> Your chats are stored securely in Cloud Firestore for your access.</p>
-                <p><strong>3. Status:</strong> Your online status is shared only while you are active on the site.</p>
-                <p><strong>4. Security:</strong> We do not sell your data. We use industry-standard encryption.</p>
+                <p><strong>2. Messaging:</strong> Your chats are stored securely in Cloud Firestore.</p>
+                <p><strong>3. Status:</strong> Your online status is shared only while active.</p>
                 <p class="pt-2 text-zinc-300 font-bold uppercase underline">Support: socializesupport@gmail.com</p>
             </div>
             <div class="flex gap-3 pt-4">
-                <button onclick="hidePolicy()" class="flex-1 text-zinc-500 font-bold uppercase text-[10px]">Decline</button>
+                <button onclick="document.getElementById('privacy-modal').classList.add('hidden')" class="flex-1 text-zinc-500 font-bold uppercase text-[10px]">Decline</button>
                 <button id="btn-accept-policy" class="flex-1 bg-fuchsia-600 py-3 rounded-xl font-black text-[10px] uppercase">Accept & Continue</button>
             </div>
         </div>
@@ -66,79 +54,41 @@
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // Your Config
         const firebaseConfig = { apiKey: "AIzaSyCNl7BW60B6GrHrGx02QaiUbZU3Z3oYlXM", authDomain: "socialize-614d2.firebaseapp.com", projectId: "socialize-614d2", storageBucket: "socialize-614d2.firebasestorage.app", messagingSenderId: "506436447388", appId: "1:506436447388:web:c8d876b69ed57048981159" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         const provider = new GoogleAuthProvider();
 
-        // Modal Controls
         window.showPolicy = (type) => {
-            const modal = document.getElementById('privacy-modal');
-            modal.classList.remove('hidden');
-            
-            document.getElementById('btn-accept-policy').onclick = () => {
-                if (type === 'email') processSignUp();
-                else processGoogle();
-            };
+            document.getElementById('privacy-modal').classList.remove('hidden');
+            document.getElementById('btn-accept-policy').onclick = () => type === 'email' ? processSignUp() : processGoogle();
         };
 
-        window.hidePolicy = () => {
-            document.getElementById('privacy-modal').classList.add('hidden');
-        };
-
-        // Create the Profile in Firestore
         async function finalizeUser(uid, name) {
             await setDoc(doc(db, "users", uid), {
-                name: name,
-                points: 100,
-                status: "online",
-                lastActive: serverTimestamp(),
-                acceptedPolicy: true,
-                bio: "New Peer",
-                streak: 1,
-                isVerified: false,
-                inventory: ["default-pfp"] // Initial inventory
+                name, points: 100, status: "online", lastActive: serverTimestamp(), acceptedPolicy: true, isVerified: false, inventory: [], equippedFrame: ""
             });
             window.location.href = 'hub.html';
         }
 
-        // Email flow
         async function processSignUp() {
-            const email = document.getElementById('email').value;
-            const pass = document.getElementById('pass').value;
-            const name = document.getElementById('name').value;
-            if(!email || !pass || !name) return alert("Please fill in everything.");
-
-            try {
-                const res = await createUserWithEmailAndPassword(auth, email, pass);
-                await finalizeUser(res.user.uid, name);
-            } catch (e) { alert(e.message); }
+            const e = document.getElementById('email').value; const p = document.getElementById('pass').value; const n = document.getElementById('name').value;
+            try { const res = await createUserWithEmailAndPassword(auth, e, p); await finalizeUser(res.user.uid, n); } catch (e) { alert(e.message); }
         }
 
-        // Google flow
         async function processGoogle() {
-            try {
+            try { 
                 const res = await signInWithPopup(auth, provider);
-                const userDoc = await getDoc(doc(db, "users", res.user.uid));
-                if (!userDoc.exists()) {
-                    await finalizeUser(res.user.uid, res.user.displayName || "User");
-                } else {
-                    window.location.href = 'hub.html';
-                }
+                const d = await getDoc(doc(db, "users", res.user.uid));
+                if (!d.exists()) await finalizeUser(res.user.uid, res.user.displayName);
+                else window.location.href = 'hub.html';
             } catch (e) { alert(e.message); }
         }
 
-        // Standard Login
         window.login = async () => {
-            const email = document.getElementById('email').value;
-            const pass = document.getElementById('pass').value;
-            if(!email || !pass) return alert("Enter email and password.");
-            try {
-                await signInWithEmailAndPassword(auth, email, pass);
-                window.location.href = 'hub.html';
-            } catch (e) { alert(e.message); }
+            const e = document.getElementById('email').value; const p = document.getElementById('pass').value;
+            try { await signInWithEmailAndPassword(auth, e, p); window.location.href = 'hub.html'; } catch (e) { alert(e.message); }
         };
     </script>
 </body>
