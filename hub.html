@@ -23,7 +23,7 @@
             <h1 class="text-xl font-black italic text-fuchsia-600">SOCIALIZE</h1>
             <p id="ui-points" class="text-yellow-500 font-bold text-[10px] tracking-widest uppercase text-left">0 SP</p>
         </div>
-        <div id="status-tag" class="flex items-center gap-2 text-[10px] font-bold text-zinc-500">
+        <div class="flex items-center gap-2 text-[10px] font-bold text-zinc-500">
             <div class="online-dot"></div> ONLINE
         </div>
     </div>
@@ -58,30 +58,29 @@
                 <button id="btn-daily" class="bg-fuchsia-600 px-6 py-2 rounded-xl font-black text-[10px] uppercase">Claim</button>
             </div>
             <div class="grid grid-cols-2 gap-3">
-                <div class="app-card p-8 rounded-[30px] text-center opacity-50">
+                <div class="app-card p-8 rounded-[30px] text-center opacity-50 border border-white/5">
                     <span class="material-icons text-fuchsia-500">bolt</span>
                     <p class="text-[10px] font-black uppercase mt-2">Quick Draw</p>
                 </div>
-                <div class="app-card p-8 rounded-[30px] text-center opacity-50">
+                <div class="app-card p-8 rounded-[30px] text-center opacity-50 border border-white/5">
                     <span class="material-icons text-yellow-500">grid_view</span>
                     <p class="text-[10px] font-black uppercase mt-2">Plinko</p>
                 </div>
             </div>
-            <p class="text-center text-zinc-600 text-[10px] uppercase font-bold py-4 italic">Games Coming Soon</p>
         </div>
 
         <div id="view-settings" class="hidden space-y-6">
             <div class="text-center py-10 app-card rounded-[40px] border border-white/5">
-                <div class="w-24 h-24 bg-zinc-800 rounded-3xl mx-auto mb-4 overflow-hidden border-2 border-fuchsia-600/20">
-                    <img id="my-pfp" src="https://api.dicebear.com/7.x/shapes/svg?seed=default" class="w-full h-full object-cover">
+                <div class="w-20 h-20 bg-zinc-800 rounded-3xl mx-auto mb-4 overflow-hidden border-2 border-fuchsia-600/20 flex items-center justify-center">
+                    <span class="material-icons text-zinc-600 text-4xl">person</span>
                 </div>
                 <h2 class="text-2xl font-black italic flex items-center justify-center gap-2">
                     <span id="display-name">User</span>
                     <span id="verified-badge" class="hidden material-icons text-blue-500">verified</span>
                 </h2>
-                <p class="text-[10px] text-zinc-500 uppercase tracking-widest mt-1">Profile Verified</p>
+                <p class="text-[10px] text-zinc-500 uppercase tracking-widest mt-1">Socialize Member</p>
             </div>
-            <button id="btn-logout" class="w-full bg-red-600/10 text-red-500 py-4 rounded-2xl font-black uppercase text-xs border border-red-600/20 hover:bg-red-600 hover:text-white transition">Logout Account</button>
+            <button id="btn-logout" class="w-full bg-red-600/10 text-red-500 py-4 rounded-2xl font-black uppercase text-xs border border-red-600/20 hover:bg-red-600 hover:text-white transition">Logout</button>
         </div>
     </div>
 
@@ -91,19 +90,18 @@
                 <button onclick="closeChat()" class="material-icons">arrow_back</button>
                 <h2 id="chat-target-name" class="font-black uppercase italic text-sm">Chat</h2>
             </div>
-            <div class="online-dot"></div>
         </div>
         <div id="private-chat-box" class="flex-1 overflow-y-auto p-6 space-y-4"></div>
         <div class="p-6 bg-zinc-900/50 flex gap-2">
             <input type="text" id="private-chat-in" placeholder="Type a message..." class="flex-1 bg-zinc-800 p-4 rounded-2xl outline-none border border-white/5 text-sm">
-            <button id="btn-private-send" class="bg-fuchsia-600 p-4 rounded-2xl flex items-center justify-center"><span class="material-icons">send</span></button>
+            <button id="btn-private-send" class="bg-fuchsia-600 p-4 rounded-2xl flex items-center justify-center"><span class="material-icons text-white">send</span></button>
         </div>
     </div>
 
     <nav class="fixed bottom-0 left-0 right-0 app-card border-t border-white/5 flex justify-around p-4 pb-8 z-[50]">
-        <button onclick="tab('chat')" id="tab-chat" class="text-fuchsia-500 transition"><span class="material-icons">forum</span></button>
-        <button onclick="tab('arcade')" id="tab-arcade" class="text-zinc-600 transition"><span class="material-icons">sports_esports</span></button>
-        <button onclick="tab('settings')" id="tab-settings" class="text-zinc-600 transition"><span class="material-icons">settings</span></button>
+        <button onclick="tab('chat')" id="tab-chat" class="text-fuchsia-500"><span class="material-icons">forum</span></button>
+        <button onclick="tab('arcade')" id="tab-arcade" class="text-zinc-600"><span class="material-icons">sports_esports</span></button>
+        <button onclick="tab('settings')" id="tab-settings" class="text-zinc-600"><span class="material-icons">settings</span></button>
     </nav>
 
     <script type="module">
@@ -120,18 +118,12 @@
         let myInterests = [];
         let chatUnsub = null;
 
-        // TAB NAVIGATION SYSTEM
+        // TAB SYSTEM
         window.tab = (t) => {
-            const views = ['view-chat', 'view-arcade', 'view-settings'];
-            const tabs = ['tab-chat', 'tab-arcade', 'tab-settings'];
-            
-            views.forEach(v => document.getElementById(v).classList.add('hidden'));
+            ['view-chat', 'view-arcade', 'view-settings'].forEach(v => document.getElementById(v).classList.add('hidden'));
             document.getElementById('view-' + t).classList.remove('hidden');
-            
-            tabs.forEach(tabId => {
-                const btn = document.getElementById(tabId);
-                btn.classList.remove('text-fuchsia-500');
-                btn.classList.add('text-zinc-600');
+            ['tab-chat', 'tab-arcade', 'tab-settings'].forEach(tabId => {
+                document.getElementById(tabId).classList.replace('text-fuchsia-500', 'text-zinc-600');
             });
             document.getElementById('tab-' + t).classList.replace('text-zinc-600', 'text-fuchsia-500');
         };
@@ -146,7 +138,7 @@
 
         window.refreshUsers = async () => {
             const list = document.getElementById('users-list');
-            list.innerHTML = `<p class="text-[10px] text-zinc-700 text-center animate-pulse py-10 uppercase tracking-widest">Searching Lobby...</p>`;
+            list.innerHTML = `<p class="text-[10px] text-zinc-700 text-center animate-pulse py-10 uppercase">Searching...</p>`;
             const q = query(collection(db, "users"), where("status", "==", "online"));
             const snap = await getDocs(q);
             let peers = [];
@@ -158,7 +150,7 @@
                 }
             });
             peers.sort((a, b) => b.score - a.score);
-            list.innerHTML = peers.length ? "" : `<p class="text-[10px] text-zinc-700 text-center py-10 uppercase tracking-widest">Lobby Empty</p>`;
+            list.innerHTML = peers.length ? "" : `<p class="text-[10px] text-zinc-700 text-center py-10 uppercase">Lobby Empty</p>`;
             peers.forEach(u => {
                 const div = document.createElement('div');
                 div.className = "flex items-center justify-between p-4 app-card rounded-2xl border border-white/5";
@@ -167,19 +159,29 @@
                         <div class="w-10 h-10 bg-zinc-800 rounded-xl overflow-hidden"><img src="https://api.dicebear.com/7.x/shapes/svg?seed=${u.id}"></div>
                         <div>
                             <p class="text-xs font-black uppercase italic">${u.name || 'User'} ${u.isVerified ? '<span class="text-blue-500 material-icons text-[12px] align-middle">verified</span>' : ''}</p>
-                            <p class="text-[9px] text-fuchsia-500 font-bold uppercase">${u.score} Match Score</p>
+                            <p class="text-[9px] text-fuchsia-500 font-bold uppercase">${u.score} Matches</p>
                         </div>
                     </div>
-                    <button onclick="openChat('${u.id}', '${u.name || 'User'}')" class="bg-white text-black px-4 py-2 rounded-xl text-[10px] font-black uppercase transition active:scale-95">Chat</button>
+                    <button onclick="openChat('${u.id}', '${u.name || 'User'}', '${u.status}')" class="bg-white text-black px-4 py-2 rounded-xl text-[10px] font-black uppercase">Chat</button>
                 `;
                 list.appendChild(div);
             });
         };
 
-        window.openChat = async (targetId, targetName) => {
+        // NEW LOGIC: Conversation Handshake
+        window.openChat = async (targetId, targetName, targetStatus) => {
+            const roomId = [currentUser.uid, targetId].sort().join("_");
+            const roomRef = doc(db, "rooms", roomId);
+            const roomSnap = await getDoc(roomRef);
+
+            if (!roomSnap.exists() && targetStatus !== "online") {
+                alert(`${targetName} is offline. You can only start new chats with online users!`);
+                return;
+            }
+
             document.getElementById('chat-target-name').innerText = targetName;
             document.getElementById('chat-modal').classList.remove('hidden');
-            const roomId = [currentUser.uid, targetId].sort().join("_");
+
             const q = query(collection(db, "rooms", roomId, "messages"), orderBy("createdAt", "asc"));
             chatUnsub = onSnapshot(q, (snap) => {
                 const box = document.getElementById('private-chat-box');
@@ -193,10 +195,15 @@
                 });
                 box.scrollTop = box.scrollHeight;
             });
+
             document.getElementById('btn-private-send').onclick = async () => {
                 const inp = document.getElementById('private-chat-in');
                 if(!inp.value) return;
                 const text = inp.value; inp.value = "";
+                
+                if (!roomSnap.exists()) {
+                    await setDoc(roomRef, { participants: [currentUser.uid, targetId], createdAt: serverTimestamp() });
+                }
                 await addDoc(collection(db, "rooms", roomId, "messages"), { text, uid: currentUser.uid, createdAt: serverTimestamp() });
                 await updateDoc(doc(db, "users", currentUser.uid), { points: increment(2) });
             };
@@ -218,22 +225,26 @@
                 if(!d) return;
                 document.getElementById('ui-points').innerText = (d.points || 0) + " SP";
                 document.getElementById('display-name').innerText = d.name || "Unknown";
-                document.getElementById('my-pfp').src = `https://api.dicebear.com/7.x/shapes/svg?seed=${user.uid}`;
                 if(d.isVerified) document.getElementById('verified-badge').classList.remove('hidden');
+                if(d.interests) {
+                    myInterests = d.interests;
+                    document.querySelectorAll('.interest-chip').forEach(chip => {
+                        if(myInterests.includes(chip.innerText)) chip.classList.add('selected');
+                    });
+                }
             });
             refreshUsers();
         });
 
         document.getElementById('btn-logout').onclick = () => { signOut(auth); };
         
-        // DAILY REWARD LOGIC
         document.getElementById('btn-daily').onclick = async () => {
             const userRef = doc(db, "users", currentUser.uid);
             const snap = await getDoc(userRef);
             const last = snap.data()?.lastClaim?.toMillis() || 0;
-            if(Date.now() - last < 86400000) return alert("You already claimed today!");
+            if(Date.now() - last < 86400000) return alert("Claim again tomorrow!");
             await updateDoc(userRef, { points: increment(50), lastClaim: serverTimestamp() });
-            alert("50 SP Claimed!");
+            alert("50 SP added!");
         };
     </script>
 </body>
