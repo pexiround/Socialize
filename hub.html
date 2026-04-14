@@ -8,8 +8,6 @@
     <style>
         body { background: #050505; color: white; font-family: 'Inter', sans-serif; overflow: hidden; }
         .app-card { background: #0d0d0d; border: 1px solid rgba(255,255,255,0.05); }
-        .interest-chip { padding: 6px 14px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); font-size: 10px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .interest-chip.selected { background: #d946ef; border-color: #d946ef; color: white; }
         .msg { margin-bottom: 8px; padding: 12px; border-radius: 20px; font-size: 13px; max-width: 80%; }
         .msg-mine { background: #d946ef; margin-left: auto; border-bottom-right-radius: 4px; }
         .msg-theirs { background: #1a1a1a; margin-right: auto; border-bottom-left-radius: 4px; }
@@ -21,52 +19,29 @@
 
     <div class="p-6 flex justify-between items-center app-card">
         <div>
-            <h1 class="text-xl font-black italic text-fuchsia-600">SOCIALIZE</h1>
-            <p id="ui-points" class="text-yellow-500 font-bold text-[10px] tracking-widest uppercase">0 SP</p>
+            <h1 class="text-xl font-black italic text-fuchsia-600 leading-none">SOCIALIZE</h1>
+            <p id="ui-points" class="text-yellow-500 font-bold text-[10px] uppercase">0 SP</p>
         </div>
     </div>
 
     <div id="main-content" class="flex-1 overflow-y-auto p-6 pb-24">
         
         <div id="view-chat" class="space-y-6">
-            <h3 class="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Recommended</h3>
-            <div id="users-list" class="grid grid-cols-1 gap-3"></div>
+            <h3 class="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Active Peers</h3>
+            <div id="users-list" class="space-y-3"></div>
         </div>
 
         <div id="view-messages" class="hidden space-y-4">
-            <h3 class="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Conversations</h3>
+            <h3 class="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Your Conversations</h3>
             <div id="convos-list" class="space-y-3"></div>
-        </div>
-
-        <div id="view-arcade" class="hidden space-y-4">
-             <div class="app-card p-6 rounded-[30px] border border-fuchsia-600/20 text-center">
-                <span class="material-icons text-fuchsia-500 text-4xl mb-2">construction</span>
-                <p class="text-[10px] text-zinc-500 uppercase font-black">Games building in progress</p>
-            </div>
         </div>
 
         <div id="view-settings" class="hidden space-y-6">
             <div class="app-card p-6 rounded-[40px] space-y-4">
-                <div class="text-center">
-                    <h2 class="text-xl font-black italic" id="set-name">Name</h2>
-                    <p class="text-[9px] text-zinc-500 uppercase">Profile Settings</p>
-                </div>
-                <input type="text" id="edit-name" placeholder="Name" class="w-full bg-zinc-900 border border-white/10 p-3 rounded-xl text-sm outline-none">
-                <input type="text" id="edit-bio" placeholder="Bio" class="w-full bg-zinc-900 border border-white/10 p-3 rounded-xl text-sm outline-none">
-                <button onclick="saveProfile()" class="w-full bg-white text-black py-3 rounded-xl font-black text-[10px] uppercase">Update Profile</button>
+                <h2 class="text-xl font-black italic text-center" id="set-name">Profile</h2>
+                <input type="text" id="edit-name" placeholder="Name" class="w-full bg-zinc-900 border border-white/10 p-4 rounded-2xl outline-none text-sm">
+                <button onclick="saveProfile()" class="w-full bg-white text-black py-4 rounded-2xl font-black uppercase text-[10px]">Save Profile</button>
             </div>
-
-            <div class="app-card p-6 rounded-[30px] border border-white/5">
-                <h3 class="text-[10px] font-black text-zinc-400 uppercase mb-3">Privacy & Data</h3>
-                <div class="text-[10px] text-zinc-500 space-y-2 leading-relaxed">
-                    <p>• We collect your email and display name for account identification.</p>
-                    <p>• Messaging data is stored securely in Cloud Firestore for your access.</p>
-                    <p>• Your online status is shared only while you are active on the site.</p>
-                    <p>• We do not sell your data to 3rd parties.</p>
-                    <p class="pt-2 text-zinc-300 font-bold uppercase">Support: socializesupport@gmail.com</p>
-                </div>
-            </div>
-
             <button id="btn-logout" class="w-full text-red-600 font-bold uppercase text-[10px]">Logout Account</button>
         </div>
     </div>
@@ -75,22 +50,21 @@
         <div class="p-6 flex justify-between items-center app-card">
             <button onclick="closeChat()" class="material-icons">arrow_back</button>
             <div class="text-center">
-                <h2 id="chat-target-name" class="font-black uppercase italic text-sm">Chat</h2>
-                <p id="chat-target-seen" class="text-[8px] text-zinc-500 uppercase font-bold"></p>
+                <h2 id="chat-target-name" class="font-black uppercase italic text-sm">User</h2>
+                <p id="chat-target-seen" class="text-[8px] text-zinc-500 font-bold uppercase"></p>
             </div>
             <div id="chat-target-dot" class="online-dot"></div>
         </div>
         <div id="private-chat-box" class="flex-1 overflow-y-auto p-6 space-y-4"></div>
-        <div class="p-6 bg-zinc-900/50 flex gap-2">
+        <div class="p-6 bg-zinc-900 flex gap-2">
             <input type="text" id="private-chat-in" placeholder="Message..." class="flex-1 bg-zinc-800 p-4 rounded-2xl outline-none text-sm">
-            <button id="btn-private-send" class="bg-fuchsia-600 p-4 rounded-2xl"><span class="material-icons text-white">send</span></button>
+            <button id="btn-private-send" class="bg-fuchsia-600 p-4 rounded-2xl"><span class="material-icons">send</span></button>
         </div>
     </div>
 
     <nav class="fixed bottom-0 left-0 right-0 app-card border-t border-white/5 flex justify-around p-4 pb-8 z-[50]">
         <button onclick="tab('chat')" id="tab-chat" class="text-fuchsia-500"><span class="material-icons">explore</span></button>
         <button onclick="tab('messages')" id="tab-messages" class="text-zinc-600"><span class="material-icons">forum</span></button>
-        <button onclick="tab('arcade')" id="tab-arcade" class="text-zinc-600"><span class="material-icons">sports_esports</span></button>
         <button onclick="tab('settings')" id="tab-settings" class="text-zinc-600"><span class="material-icons">settings</span></button>
     </nav>
 
@@ -107,23 +81,20 @@
         let currentUser = null;
         let chatUnsub = null;
 
-        // HELPER: No more "Undefined"
-        const cleanName = (name) => name && name !== "undefined" ? name : "Stranger";
+        const cleanName = (n) => n && n !== "undefined" ? n : "Stranger";
 
-        // TABS
         window.tab = (t) => {
-            ['view-chat', 'view-messages', 'view-arcade', 'view-settings'].forEach(v => document.getElementById(v).classList.add('hidden'));
+            ['view-chat', 'view-messages', 'view-settings'].forEach(v => document.getElementById(v).classList.add('hidden'));
             document.getElementById('view-' + t).classList.remove('hidden');
-            ['tab-chat', 'tab-messages', 'tab-arcade', 'tab-settings'].forEach(btn => document.getElementById(btn).classList.replace('text-fuchsia-500', 'text-zinc-600'));
+            ['tab-chat', 'tab-messages', 'tab-settings'].forEach(btn => document.getElementById(btn).classList.replace('text-fuchsia-500', 'text-zinc-600'));
             document.getElementById('tab-' + t).classList.replace('text-zinc-600', 'text-fuchsia-500');
             if(t === 'messages') loadConversations();
         };
 
-        // DISCOVER (Filtered to only show NEW people)
         window.refreshUsers = async () => {
             if(!currentUser) return;
-            const convoSnap = await getDocs(query(collection(db, "rooms"), where("participants", "array-contains", currentUser.uid)));
-            const talkedTo = convoSnap.docs.map(d => d.data().participants.find(id => id !== currentUser.uid));
+            const rooms = await getDocs(query(collection(db, "rooms"), where("participants", "array-contains", currentUser.uid)));
+            const talkedTo = rooms.docs.map(d => d.data().participants.find(id => id !== currentUser.uid));
 
             const q = query(collection(db, "users"), where("status", "==", "online"));
             const snap = await getDocs(q);
@@ -132,112 +103,75 @@
             
             snap.forEach(d => {
                 const u = d.data();
-                if(d.id !== currentUser.uid && !talkedTo.includes(d.id)) {
+                const lastActive = u.lastActive?.toMillis() || 0;
+                // GHOST CHECK: If active in last 5 minutes
+                if(d.id !== currentUser.uid && !talkedTo.includes(d.id) && (Date.now() - lastActive < 300000)) {
                     const div = document.createElement('div');
-                    div.className = "flex items-center justify-between p-4 app-card rounded-2xl border border-white/5";
-                    div.innerHTML = `
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 bg-zinc-800 rounded-xl"></div>
-                            <div>
-                                <p class="text-xs font-black uppercase italic">${cleanName(u.name)}</p>
-                                <p class="text-[9px] text-zinc-500 uppercase">${u.bio || 'New Peer'}</p>
-                            </div>
-                        </div>
-                        <button onclick="openChat('${d.id}', '${cleanName(u.name)}', 'online')" class="bg-fuchsia-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase">Chat</button>
-                    `;
+                    div.className = "flex items-center justify-between p-4 app-card rounded-2xl";
+                    div.innerHTML = `<p class="text-xs font-black italic uppercase">${cleanName(u.name)}</p>
+                        <button onclick="openChat('${d.id}', '${cleanName(u.name)}', 'online')" class="bg-fuchsia-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase">Chat</button>`;
                     list.appendChild(div);
                 }
             });
         };
 
-        // MESSAGES
         window.loadConversations = async () => {
             const list = document.getElementById('convos-list');
             list.innerHTML = "";
-            const q = query(collection(db, "rooms"), where("participants", "array-contains", currentUser.uid));
-            const snap = await getDocs(q);
-            
+            const snap = await getDocs(query(collection(db, "rooms"), where("participants", "array-contains", currentUser.uid)));
             snap.forEach(async (roomDoc) => {
                 const otherId = roomDoc.data().participants.find(id => id !== currentUser.uid);
-                const userSnap = await getDoc(doc(db, "users", otherId));
-                const u = userSnap.data() || {};
-                
+                const u = (await getDoc(doc(db, "users", otherId))).data() || {};
                 const div = document.createElement('div');
                 div.className = "flex items-center justify-between p-4 app-card rounded-2xl";
-                div.innerHTML = `
-                    <div class="flex items-center gap-3">
-                        <div class="${u.status === 'online' ? 'online-dot' : 'offline-dot'}"></div>
-                        <p class="text-xs font-black uppercase italic">${cleanName(u.name)}</p>
-                    </div>
-                    <button onclick="openChat('${otherId}', '${cleanName(u.name)}', '${u.status}')" class="material-icons text-zinc-500">chevron_right</button>
-                `;
+                div.innerHTML = `<div class="flex items-center gap-2"><div class="${u.status === 'online' ? 'online-dot' : 'offline-dot'}"></div>
+                    <p class="text-xs font-black uppercase italic">${cleanName(u.name)}</p></div>
+                    <button onclick="openChat('${otherId}', '${cleanName(u.name)}', '${u.status}')" class="material-icons text-zinc-500">chevron_right</button>`;
                 list.appendChild(div);
             });
         };
 
-        // CHAT ENGINE
         window.openChat = async (targetId, targetName, targetStatus) => {
             const roomId = [currentUser.uid, targetId].sort().join("_");
-            document.getElementById('chat-target-name').innerText = cleanName(targetName);
+            document.getElementById('chat-target-name').innerText = targetName;
             document.getElementById('chat-modal').classList.remove('hidden');
 
-            const q = query(collection(db, "rooms", roomId, "messages"), orderBy("createdAt", "asc"));
-            chatUnsub = onSnapshot(q, (snap) => {
-                const box = document.getElementById('private-chat-box');
-                box.innerHTML = "";
+            chatUnsub = onSnapshot(query(collection(db, "rooms", roomId, "messages"), orderBy("createdAt", "asc")), (snap) => {
+                const box = document.getElementById('private-chat-box'); box.innerHTML = "";
                 snap.forEach(d => {
                     const m = d.data();
                     const div = document.createElement('div');
                     div.className = `msg ${m.uid === currentUser.uid ? 'msg-mine' : 'msg-theirs'}`;
-                    div.innerText = m.text;
-                    box.appendChild(div);
+                    div.innerText = m.text; box.appendChild(div);
                 });
                 box.scrollTop = box.scrollHeight;
             });
 
             document.getElementById('btn-private-send').onclick = async () => {
-                const inp = document.getElementById('private-chat-in');
-                if(!inp.value) return;
+                const inp = document.getElementById('private-chat-in'); if(!inp.value) return;
                 const text = inp.value; inp.value = "";
                 const roomRef = doc(db, "rooms", roomId);
-                const rSnap = await getDoc(roomRef);
-                if (!rSnap.exists()) await setDoc(roomRef, { participants: [currentUser.uid, targetId], createdAt: serverTimestamp() });
+                if (!(await getDoc(roomRef)).exists()) await setDoc(roomRef, { participants: [currentUser.uid, targetId], createdAt: serverTimestamp() });
                 await addDoc(collection(db, "rooms", roomId, "messages"), { text, uid: currentUser.uid, createdAt: serverTimestamp() });
             };
         };
 
-        window.closeChat = () => {
-            document.getElementById('chat-modal').classList.add('hidden');
-            if(chatUnsub) chatUnsub();
-        };
+        window.closeChat = () => { document.getElementById('chat-modal').classList.add('hidden'); if(chatUnsub) chatUnsub(); };
 
-        // PROFILE
-        window.saveProfile = async () => {
-            const name = document.getElementById('edit-name').value;
-            const bio = document.getElementById('edit-bio').value;
-            if(name) await updateDoc(doc(db, "users", currentUser.uid), { name, bio });
-        };
-
-        // PRESENCE & AUTH
         onAuthStateChanged(auth, async (user) => {
             if(!user) return window.location.href = 'index.html';
             currentUser = user;
             const userRef = doc(db, "users", user.uid);
-            
-            // Set Online
             await setDoc(userRef, { status: "online", lastActive: serverTimestamp() }, { merge: true });
 
-            // KILL SWITCH: Set offline immediately on tab close
-            window.addEventListener('beforeunload', () => {
-                updateDoc(userRef, { status: "offline", lastActive: serverTimestamp() });
-            });
+            // HEARTBEAT Every 60s
+            setInterval(() => updateDoc(userRef, { lastActive: serverTimestamp(), status: "online" }), 60000);
 
             onSnapshot(userRef, (s) => {
                 const d = s.data() || {};
                 document.getElementById('ui-points').innerText = (d.points || 0) + " SP";
                 document.getElementById('set-name').innerText = cleanName(d.name);
                 document.getElementById('edit-name').value = d.name || "";
-                document.getElementById('edit-bio').value = d.bio || "";
             });
             refreshUsers();
         });
