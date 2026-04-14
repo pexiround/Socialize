@@ -15,6 +15,8 @@
         .msg-theirs { background: #1a1a1a; margin-right: auto; border-bottom-left-radius: 4px; }
         .online-dot { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 8px #22c55e; }
         .offline-dot { width: 8px; height: 8px; background: #3f3f46; border-radius: 50%; }
+        /* Smooth Fade for list updates */
+        #users-list { transition: all 0.3s ease; }
     </style>
 </head>
 <body class="h-screen flex flex-col">
@@ -29,56 +31,49 @@
     <div id="main-content" class="flex-1 overflow-y-auto p-6 pb-24">
         
         <div id="view-chat" class="space-y-6">
-            <h3 class="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Interests</h3>
-            <div id="interests-box" class="flex flex-wrap gap-2">
-                <div class="interest-chip" onclick="toggleInterest(this, 'Gaming')">Gaming</div>
-                <div class="interest-chip" onclick="toggleInterest(this, 'Coding')">Coding</div>
-                <div class="interest-chip" onclick="toggleInterest(this, 'Music')">Music</div>
-                <div class="interest-chip" onclick="toggleInterest(this, 'Anime')">Anime</div>
-            </div>
-            <div class="flex justify-between items-center pt-4 border-t border-white/5">
-                <h3 class="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Online Now</h3>
-                <button onclick="refreshUsers()" class="material-icons text-sm text-zinc-500">refresh</button>
-            </div>
-            <div id="users-list" class="space-y-3"></div>
+            <h3 class="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Recommended</h3>
+            <div id="users-list" class="grid grid-cols-1 gap-3"></div>
         </div>
 
         <div id="view-messages" class="hidden space-y-4">
-            <h3 class="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Recent Conversations</h3>
+            <h3 class="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Conversations</h3>
             <div id="convos-list" class="space-y-3"></div>
         </div>
 
         <div id="view-arcade" class="hidden space-y-4">
-            <div class="app-card p-6 rounded-[30px] border border-fuchsia-600/20">
+             <div class="app-card p-6 rounded-[30px] border border-fuchsia-600/20">
                 <h3 class="font-black text-sm uppercase italic">Daily Bonus</h3>
-                <p id="reward-timer" class="text-[10px] text-zinc-500 mb-3">Checking time...</p>
-                <button id="btn-daily" class="w-full bg-fuchsia-600 py-3 rounded-xl font-black text-[10px] uppercase disabled:opacity-30 disabled:bg-zinc-800">Claim 50 SP</button>
-            </div>
-            <div class="app-card p-6 rounded-[30px] border border-white/5 flex justify-between items-center">
-                <div>
-                    <h3 class="font-black text-sm uppercase italic">Quick Draw</h3>
-                    <p class="text-[10px] text-zinc-500">Reaction battle (Wager 10 SP)</p>
-                </div>
-                <button onclick="startQuickDraw()" class="bg-white text-black px-4 py-2 rounded-xl font-black text-[10px] uppercase">Play</button>
+                <p id="reward-timer" class="text-[10px] text-zinc-500 mb-3">Loading...</p>
+                <button id="btn-daily" class="w-full bg-fuchsia-600 py-3 rounded-xl font-black text-[10px] uppercase disabled:opacity-30">Claim 50 SP</button>
             </div>
         </div>
 
         <div id="view-settings" class="hidden space-y-6">
-            <div class="text-center py-10 app-card rounded-[40px]">
-                <h2 class="text-2xl font-black italic flex items-center justify-center gap-2">
-                    <span id="display-name">User</span>
-                    <span id="verified-badge" class="hidden material-icons text-blue-500">verified</span>
-                </h2>
-                <button id="btn-logout" class="mt-4 text-red-500 text-[10px] font-bold uppercase tracking-widest">Logout</button>
+            <div class="app-card p-6 rounded-[40px] space-y-4">
+                <div class="text-center">
+                    <img id="set-pfp" class="w-20 h-20 rounded-3xl mx-auto bg-zinc-800 border border-fuchsia-500/50">
+                    <h2 class="text-xl font-black italic mt-2" id="set-name">Name</h2>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-[10px] font-bold text-zinc-500 uppercase">Change Name</label>
+                    <input type="text" id="edit-name" class="w-full bg-zinc-900 border border-white/10 p-3 rounded-xl text-sm outline-none">
+                    <label class="text-[10px] font-bold text-zinc-500 uppercase">Bio / Status</label>
+                    <input type="text" id="edit-bio" placeholder="Vibing..." class="w-full bg-zinc-900 border border-white/10 p-3 rounded-xl text-sm outline-none">
+                </div>
+                <button onclick="saveProfile()" class="w-full bg-white text-black py-3 rounded-xl font-black text-[10px] uppercase">Save Profile</button>
             </div>
+            <button id="btn-logout" class="w-full text-zinc-600 font-bold uppercase text-[10px]">Logout</button>
         </div>
     </div>
 
     <div id="chat-modal" class="hidden fixed inset-0 bg-black z-[100] flex flex-col">
         <div class="p-6 flex justify-between items-center app-card">
             <button onclick="closeChat()" class="material-icons">arrow_back</button>
-            <h2 id="chat-target-name" class="font-black uppercase italic text-sm">Chat</h2>
-            <div id="chat-target-status" class="online-dot"></div>
+            <div class="text-center">
+                <h2 id="chat-target-name" class="font-black uppercase italic text-sm leading-none">Chat</h2>
+                <p id="chat-target-seen" class="text-[9px] text-zinc-500 uppercase font-bold mt-1"></p>
+            </div>
+            <div id="chat-target-dot" class="online-dot"></div>
         </div>
         <div id="private-chat-box" class="flex-1 overflow-y-auto p-6 space-y-4"></div>
         <div class="p-6 bg-zinc-900/50 flex gap-2">
@@ -107,8 +102,21 @@
         let currentUser = null;
         let myInterests = [];
         let chatUnsub = null;
+        let myChatIds = []; // Track who we already messaged
 
-        // TAB NAVIGATION
+        // HELPERS
+        function formatTimeAgo(timestamp) {
+            if (!timestamp) return "Never seen";
+            const seconds = Math.floor((Date.now() - timestamp.toMillis()) / 1000);
+            if (seconds < 60) return "Just now";
+            const mins = Math.floor(seconds / 60);
+            if (mins < 60) return `${mins}m ago`;
+            const hrs = Math.floor(mins / 60);
+            if (hrs < 24) return `${hrs}h ago`;
+            return "Offline";
+        }
+
+        // TAB SYSTEM
         window.tab = (t) => {
             ['view-chat', 'view-messages', 'view-arcade', 'view-settings'].forEach(v => document.getElementById(v).classList.add('hidden'));
             document.getElementById('view-' + t).classList.remove('hidden');
@@ -117,48 +125,48 @@
             if(t === 'messages') loadConversations();
         };
 
-        // DISCOVER: ONLINE ONLY
+        // DISCOVER (Auto-refreshes every 30s)
         window.refreshUsers = async () => {
-            const list = document.getElementById('users-list');
-            list.innerHTML = `<p class="text-[10px] text-zinc-700 text-center animate-pulse py-10">SEARCHING...</p>`;
+            if(!currentUser) return;
+            // 1. Get IDs of people I've already messaged
+            const convoSnap = await getDocs(query(collection(db, "rooms"), where("participants", "array-contains", currentUser.uid)));
+            myChatIds = convoSnap.docs.map(d => d.data().participants.find(id => id !== currentUser.uid));
+
+            // 2. Query Online users
             const q = query(collection(db, "users"), where("status", "==", "online"));
             const snap = await getDocs(q);
-            let peers = [];
+            const list = document.getElementById('users-list');
+            list.innerHTML = "";
+            
             snap.forEach(d => {
-                if(d.id !== currentUser.uid) {
-                    const data = d.data();
-                    let score = (data.interests || []).filter(i => myInterests.includes(i)).length;
-                    peers.push({ id: d.id, ...data, score });
+                const u = d.data();
+                // Filter: Not me AND not someone I've messaged
+                if(d.id !== currentUser.uid && !myChatIds.includes(d.id)) {
+                    const div = document.createElement('div');
+                    div.className = "flex items-center justify-between p-4 app-card rounded-2xl border border-white/5";
+                    div.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <img src="https://api.dicebear.com/7.x/shapes/svg?seed=${d.id}" class="w-10 h-10 bg-zinc-800 rounded-xl">
+                            <div>
+                                <p class="text-xs font-black uppercase italic">${u.name || 'User'}</p>
+                                <p class="text-[9px] text-zinc-500 font-bold uppercase">${u.bio || 'New member'}</p>
+                            </div>
+                        </div>
+                        <button onclick="openChat('${d.id}', '${u.name}', 'online')" class="bg-fuchsia-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase">Chat</button>
+                    `;
+                    list.appendChild(div);
                 }
             });
-            peers.sort((a, b) => b.score - a.score);
-            list.innerHTML = peers.length ? "" : `<p class="text-[10px] text-zinc-700 text-center py-10">NO ONE ONLINE</p>`;
-            peers.forEach(u => {
-                const div = document.createElement('div');
-                div.className = "flex items-center justify-between p-4 app-card rounded-2xl border border-white/5";
-                div.innerHTML = `
-                    <div class="flex items-center gap-3">
-                        <img src="https://api.dicebear.com/7.x/shapes/svg?seed=${u.id}" class="w-10 h-10 bg-zinc-800 rounded-xl">
-                        <div>
-                            <p class="text-xs font-black uppercase italic">${u.name || 'User'}</p>
-                            <p class="text-[9px] text-fuchsia-500 font-bold uppercase">${u.score} Matching</p>
-                        </div>
-                    </div>
-                    <button onclick="openChat('${u.id}', '${u.name || 'User'}', 'online')" class="bg-white text-black px-4 py-2 rounded-xl text-[10px] font-black uppercase">Chat</button>
-                `;
-                list.appendChild(div);
-            });
         };
+        setInterval(refreshUsers, 30000); // 30s Refresh
 
-        // MESSAGES: HISTORY (CAN BE OFFLINE)
+        // CONVERSATIONS
         window.loadConversations = async () => {
             const list = document.getElementById('convos-list');
-            list.innerHTML = `<p class="text-[10px] text-zinc-700 text-center py-10">LOADING CHATS...</p>`;
-            
+            list.innerHTML = `<p class="text-[10px] text-zinc-700 text-center py-10">Syncing Messages...</p>`;
             const q = query(collection(db, "rooms"), where("participants", "array-contains", currentUser.uid));
             const snap = await getDocs(q);
-            
-            list.innerHTML = snap.empty ? `<p class="text-[10px] text-zinc-700 text-center py-10">NO MESSAGES YET</p>` : "";
+            list.innerHTML = "";
             
             snap.forEach(async (roomDoc) => {
                 const otherId = roomDoc.data().participants.find(id => id !== currentUser.uid);
@@ -170,27 +178,39 @@
                 div.innerHTML = `
                     <div class="flex items-center gap-3">
                         <div class="${u.status === 'online' ? 'online-dot' : 'offline-dot'}"></div>
-                        <p class="text-xs font-black uppercase italic">${u.name || 'User'}</p>
+                        <div>
+                            <p class="text-xs font-black uppercase italic">${u.name}</p>
+                            <p class="text-[9px] text-zinc-600 font-bold uppercase">${u.status === 'online' ? 'Online' : 'Last seen ' + formatTimeAgo(u.lastActive)}</p>
+                        </div>
                     </div>
-                    <button onclick="openChat('${otherId}', '${u.name}', '${u.status}')" class="text-fuchsia-500 material-icons">chevron_right</button>
+                    <button onclick="openChat('${otherId}', '${u.name}', '${u.status}')" class="text-white material-icons">chevron_right</button>
                 `;
                 list.appendChild(div);
             });
+        };
+
+        // PROFILE CUSTOMIZATION
+        window.saveProfile = async () => {
+            const name = document.getElementById('edit-name').value;
+            const bio = document.getElementById('edit-bio').value;
+            if(name) {
+                await updateDoc(doc(db, "users", currentUser.uid), { name, bio });
+                alert("Profile Updated!");
+            }
         };
 
         // CHAT ENGINE
         window.openChat = async (targetId, targetName, targetStatus) => {
             const roomId = [currentUser.uid, targetId].sort().join("_");
             const roomRef = doc(db, "rooms", roomId);
-            const roomSnap = await getDoc(roomRef);
-
-            if (!roomSnap.exists() && targetStatus !== "online") {
-                return alert("User is offline. You must start new chats while they are online!");
-            }
-
+            
+            // Sync status in header
+            const targetSnap = await getDoc(doc(db, "users", targetId));
+            const tData = targetSnap.data();
             document.getElementById('chat-target-name').innerText = targetName;
+            document.getElementById('chat-target-seen').innerText = tData.status === 'online' ? 'ACTIVE NOW' : 'LAST SEEN ' + formatTimeAgo(tData.lastActive);
+            document.getElementById('chat-target-dot').className = tData.status === 'online' ? 'online-dot' : 'offline-dot';
             document.getElementById('chat-modal').classList.remove('hidden');
-            document.getElementById('chat-target-status').className = targetStatus === 'online' ? 'online-dot' : 'offline-dot';
 
             const q = query(collection(db, "rooms", roomId, "messages"), orderBy("createdAt", "asc"));
             chatUnsub = onSnapshot(q, (snap) => {
@@ -210,9 +230,10 @@
                 const inp = document.getElementById('private-chat-in');
                 if(!inp.value) return;
                 const text = inp.value; inp.value = "";
-                if (!roomSnap.exists()) await setDoc(roomRef, { participants: [currentUser.uid, targetId], createdAt: serverTimestamp() });
+                const rSnap = await getDoc(roomRef);
+                if (!rSnap.exists()) await setDoc(roomRef, { participants: [currentUser.uid, targetId], createdAt: serverTimestamp() });
                 await addDoc(collection(db, "rooms", roomId, "messages"), { text, uid: currentUser.uid, createdAt: serverTimestamp() });
-                await updateDoc(doc(db, "users", currentUser.uid), { points: increment(2) });
+                refreshUsers(); // Refresh discover list so they vanish
             };
         };
 
@@ -221,59 +242,33 @@
             if(chatUnsub) chatUnsub();
         };
 
-        // DAILY REWARD TIMER
-        function updateRewardTimer(lastClaim) {
-            const btn = document.getElementById('btn-daily');
-            const timerText = document.getElementById('reward-timer');
-            const nextAvailable = (lastClaim?.toMillis() || 0) + 86400000;
-            
-            const tick = () => {
-                const diff = nextAvailable - Date.now();
-                if (diff <= 0) {
-                    btn.disabled = false;
-                    timerText.innerText = "Bonus ready to claim!";
-                } else {
-                    btn.disabled = true;
-                    const hrs = Math.floor(diff / 3600000);
-                    const mins = Math.floor((diff % 3600000) / 60000);
-                    timerText.innerText = `Available in ${hrs}h ${mins}m`;
-                    setTimeout(tick, 60000);
-                }
-            };
-            tick();
-        }
-
+        // AUTH & PRESENCE
         onAuthStateChanged(auth, async (user) => {
             if(!user) return window.location.href = 'index.html';
             currentUser = user;
             const userRef = doc(db, "users", user.uid);
-            await setDoc(userRef, { status: "online", lastActive: serverTimestamp() }, { merge: true });
+            
+            // Heartbeat: Tell Firebase we are online every 2 mins
+            const updateStatus = () => setDoc(userRef, { status: "online", lastActive: serverTimestamp() }, { merge: true });
+            updateStatus();
+            setInterval(updateStatus, 120000); 
 
             onSnapshot(userRef, (s) => {
                 const d = s.data();
-                if(!d) return;
                 document.getElementById('ui-points').innerText = (d.points || 0) + " SP";
-                document.getElementById('display-name').innerText = d.name || "Unknown";
+                document.getElementById('set-name').innerText = d.name;
+                document.getElementById('edit-name').value = d.name;
+                document.getElementById('edit-bio').value = d.bio || "";
+                document.getElementById('set-pfp').src = `https://api.dicebear.com/7.x/shapes/svg?seed=${user.uid}`;
                 if(d.isVerified) document.getElementById('verified-badge').classList.remove('hidden');
-                updateRewardTimer(d.lastClaim);
             });
             refreshUsers();
         });
 
-        document.getElementById('btn-logout').onclick = () => signOut(auth);
-        
-        document.getElementById('btn-daily').onclick = async () => {
-            await updateDoc(doc(db, "users", currentUser.uid), { 
-                points: increment(50), 
-                lastClaim: serverTimestamp() 
-            });
+        document.getElementById('btn-logout').onclick = async () => {
+            await updateDoc(doc(db, "users", currentUser.uid), { status: "offline", lastActive: serverTimestamp() });
+            signOut(auth);
         };
-
-        // ARCADE FOUNDATION
-        window.startQuickDraw = () => {
-            alert("Waiting for an opponent... (Quick Draw logic coming in next update!)");
-        };
-
     </script>
 </body>
 </html>
