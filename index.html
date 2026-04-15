@@ -2,39 +2,147 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Socialize Academy | Login</title>
+    <title>Socialize | Raid Boss</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        body { background: #050505; color: white; font-family: 'Inter', sans-serif; overflow: hidden; }
+        .boss-shake { animation: shake 0.2s infinite; }
+        @keyframes shake { 0% { transform: translate(1px, 1px); } 50% { transform: translate(-1px, -1px); } 100% { transform: translate(1px, -1px); } }
+        .damage-popup { position: absolute; color: #d946ef; font-weight: 900; animation: floatUp 0.6s ease-out forwards; pointer-events: none; }
+        @keyframes floatUp { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-50px); } }
+        .app-card { background: #0d0d0d; border: 1px solid rgba(255,255,255,0.05); }
+    </style>
 </head>
-<body class="bg-[#050505] text-white h-screen flex items-center justify-center p-6 font-sans">
-    <div class="w-full max-w-sm text-center space-y-8">
-        <div>
-            <h1 class="text-5xl font-black italic text-fuchsia-600 tracking-tighter">SOCIALIZE</h1>
-            <p class="text-zinc-500 text-[10px] uppercase tracking-[0.3em] mt-2 font-bold">Code Academy</p>
+<body class="h-screen flex flex-col">
+
+    <div class="p-6 flex justify-between items-center app-card">
+        <h1 class="text-xl font-black italic text-fuchsia-600">SOCIALIZE</h1>
+        <div class="text-right">
+            <p id="ui-sp" class="text-yellow-500 font-bold text-xs uppercase">0 SP</p>
+            <p id="ui-dps" class="text-zinc-500 text-[8px] font-bold uppercase tracking-widest">0 DPS (Auto)</p>
         </div>
-        <button onclick="login()" class="w-full bg-white text-black py-5 rounded-[24px] font-black uppercase text-xs flex items-center justify-center gap-3 hover:scale-[1.02] transition-transform">
-            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/pwa_inc_64.png" class="w-5 h-5"> Continue with Google
+    </div>
+
+    <div class="flex-1 flex flex-col items-center justify-center p-6 space-y-8 relative">
+        
+        <div class="text-center space-y-2">
+            <h2 class="text-zinc-500 font-black text-[10px] uppercase tracking-[0.4em]">Current Raid Boss</h2>
+            <p id="ui-hp-text" class="text-3xl font-black tabular-nums">1,000,000 HP</p>
+        </div>
+
+        <button id="boss-btn" onclick="attack(event)" class="relative w-48 h-48 bg-fuchsia-600/10 rounded-full flex items-center justify-center border-4 border-fuchsia-600/20 shadow-[0_0_50px_rgba(217,70,239,0.1)] active:scale-90 transition-transform">
+            <span class="material-icons text-8xl text-fuchsia-600">explicit</span>
+            <svg class="absolute inset-0 w-full h-full -rotate-90">
+                <circle id="hp-ring" cx="96" cy="96" r="90" stroke="currentColor" stroke-width="8" fill="transparent" class="text-fuchsia-600 transition-all duration-500" stroke-dasharray="565" stroke-dashoffset="0" />
+            </svg>
         </button>
+
+        <p class="text-zinc-600 text-[10px] font-bold uppercase animate-pulse">Tap to Attack</p>
+    </div>
+
+    <div class="p-6 app-card rounded-t-[40px] space-y-4">
+        <div class="flex justify-between items-center">
+            <h3 class="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Upgrades</h3>
+            <span class="material-icons text-zinc-700">keyboard_arrow_up</span>
+        </div>
+        
+        <div class="flex gap-3 overflow-x-auto pb-4 no-scrollbar">
+            <button onclick="buyUpgrade('dps', 500)" class="flex-shrink-0 bg-zinc-900 p-4 rounded-3xl border border-white/5 text-left w-32 active:scale-95 transition-all">
+                <p class="text-[8px] font-black text-fuchsia-500 uppercase">Auto-Clicker</p>
+                <p class="text-xs font-bold mt-1">+1 DPS</p>
+                <p class="text-[9px] text-yellow-500 mt-2">500 SP</p>
+            </button>
+            <button onclick="buyUpgrade('crit', 2000)" class="flex-shrink-0 bg-zinc-900 p-4 rounded-3xl border border-white/5 text-left w-32 active:scale-95 transition-all">
+                <p class="text-[8px] font-black text-cyan-500 uppercase">Critical Chance</p>
+                <p class="text-xs font-bold mt-1">+5% Crit</p>
+                <p class="text-[9px] text-yellow-500 mt-2">2k SP</p>
+            </button>
+        </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, onSnapshot, updateDoc, increment, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyCNl7BW60B6GrHrGx02QaiUbZU3Z3oYlXM", authDomain: "socialize-614d2.firebaseapp.com", projectId: "socialize-614d2", storageBucket: "socialize-614d2.firebasestorage.app", messagingSenderId: "506436447388", appId: "1:506436447388:web:c8d876b69ed57048981159" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        window.login = async () => {
+        let user = null;
+        let userData = {};
+        const MAX_HP = 1000000;
+
+        // 1. LOGIN LOGIC
+        async function login() {
             const res = await signInWithPopup(auth, new GoogleAuthProvider());
-            const userRef = doc(db, "users", res.user.uid);
-            const d = await getDoc(userRef);
-            if (!d.exists()) {
-                await setDoc(userRef, { name: res.user.displayName, points: 100, level: 1, isVerified: false });
-            }
-            window.location.href = 'hub.html';
+            const ref = doc(db, "users", res.user.uid);
+            const d = await getDoc(ref);
+            if(!d.exists()) await setDoc(ref, { sp: 0, dps: 0, crit: 5 });
+        }
+
+        // 2. ATTACK LOGIC
+        window.attack = async (e) => {
+            if(!user) return login();
+
+            let dmg = 1;
+            let isCrit = Math.random() * 100 < (userData.crit || 5);
+            if(isCrit) dmg = 10;
+
+            // Update Global Boss HP
+            await updateDoc(doc(db, "global", "boss"), { hp: increment(-dmg) });
+            // Update My SP
+            await updateDoc(doc(db, "users", user.uid), { sp: increment(dmg) });
+
+            showDamage(e.clientX, e.clientY, dmg, isCrit);
         };
+
+        function showDamage(x, y, dmg, crit) {
+            const div = document.createElement('div');
+            div.className = `damage-popup ${crit ? 'text-yellow-400 text-xl' : ''}`;
+            div.style.left = x + 'px'; div.style.top = y + 'px';
+            div.innerText = crit ? `CRIT! +${dmg}` : `+${dmg}`;
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 600);
+        }
+
+        window.buyUpgrade = async (type, cost) => {
+            if(userData.sp < cost) return alert("Not enough SP!");
+            const ref = doc(db, "users", user.uid);
+            if(type === 'dps') await updateDoc(ref, { sp: increment(-cost), dps: increment(1) });
+            if(type === 'crit') await updateDoc(ref, { sp: increment(-cost), crit: increment(5) });
+        };
+
+        // 3. SYNC LOGIC
+        onAuthStateChanged(auth, u => {
+            if(!u) return;
+            user = u;
+            // Sync User Stats
+            onSnapshot(doc(db, "users", u.uid), s => {
+                userData = s.data();
+                document.getElementById('ui-sp').innerText = (userData.sp || 0) + " SP";
+                document.getElementById('ui-dps').innerText = (userData.dps || 0) + " DPS (Auto)";
+            });
+            // Auto-Clicker Loop
+            setInterval(() => {
+                if(userData.dps > 0) updateDoc(doc(db, "global", "boss"), { hp: increment(-userData.dps) });
+            }, 1000);
+        });
+
+        // Sync Boss HP for everyone
+        onSnapshot(doc(db, "global", "boss"), s => {
+            const hp = s.data()?.hp || MAX_HP;
+            document.getElementById('ui-hp-text').innerText = hp.toLocaleString() + " HP";
+            const offset = 565 - (565 * (hp / MAX_HP));
+            document.getElementById('hp-ring').style.strokeDashoffset = offset;
+            
+            if(hp <= 0) {
+                alert("BOSS DEFEATED! Resetting...");
+                updateDoc(doc(db, "global", "boss"), { hp: MAX_HP });
+            }
+        });
     </script>
 </body>
 </html>
