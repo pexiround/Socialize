@@ -2,86 +2,68 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Socialize | Learning Path</title>
+    <title>Socialize | Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
         body { background: #050505; color: white; font-family: 'Inter', sans-serif; overflow: hidden; }
         .app-card { background: #0d0d0d; border: 1px solid rgba(255,255,255,0.05); }
-        .editor-box { font-family: 'Fira Code', monospace; scrollbar-width: none; }
-        .btn-glow:active { transform: scale(0.98); box-shadow: 0 0 20px rgba(217, 70, 239, 0.4); }
+        .editor { font-family: 'Fira Code', monospace; background: #000; color: #d946ef; }
         .hidden { display: none !important; }
     </style>
 </head>
 <body class="h-screen flex flex-col">
 
     <div class="p-6 flex justify-between items-center app-card">
-        <div class="flex items-center gap-2">
-            <h1 class="text-xl font-black italic text-fuchsia-600">SOCIALIZE</h1>
+        <h1 class="text-xl font-black italic text-fuchsia-600">SOCIALIZE</h1>
+        <div class="flex items-center gap-4">
             <span id="verified-badge" class="hidden material-icons text-blue-400 text-lg">verified</span>
-        </div>
-        <div class="flex items-center gap-3">
-            <p id="ui-points" class="text-yellow-500 font-bold text-[10px] uppercase tracking-widest">0 SP</p>
-            <div class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center border border-white/10">
-                <span class="material-icons text-sm text-zinc-500">person</span>
-            </div>
+            <p id="ui-points" class="text-yellow-500 font-bold text-[10px] tracking-widest uppercase">0 SP</p>
         </div>
     </div>
 
-    <div id="main-content" class="flex-1 overflow-y-auto p-6 pb-24 space-y-6">
+    <div class="flex-1 overflow-y-auto p-6 pb-32 space-y-6">
         
-        <div class="app-card p-6 rounded-[35px] border-b-4 border-fuchsia-900/30">
-            <div class="flex justify-between items-end mb-3">
-                <div>
-                    <h3 class="text-fuchsia-500 font-black italic text-lg uppercase leading-none">JS Basics</h3>
-                    <p class="text-[9px] text-zinc-500 font-bold uppercase mt-1">Intro to the Web</p>
-                </div>
-                <p id="ui-percent" class="text-[10px] font-black">0%</p>
+        <div class="app-card p-6 rounded-[35px] border-b-4 border-fuchsia-950">
+            <div class="flex justify-between items-center mb-3">
+                <span class="text-[10px] font-black uppercase text-zinc-500">JS Fundamentals</span>
+                <span id="ui-percent" class="text-fuchsia-500 font-bold text-[10px]">0%</span>
             </div>
-            <div class="w-full bg-zinc-950 h-2 rounded-full overflow-hidden border border-white/5">
+            <div class="w-full bg-zinc-950 h-1.5 rounded-full overflow-hidden">
                 <div id="progress-bar" class="bg-fuchsia-600 h-full transition-all duration-700" style="width: 0%"></div>
             </div>
         </div>
 
-        <div id="lesson-card" class="app-card p-8 rounded-[40px] space-y-6">
+        <div id="lesson-engine" class="app-card p-8 rounded-[40px] space-y-6">
             <div class="space-y-2">
-                <h2 id="lesson-title" class="text-xl font-black italic uppercase text-white">Loading Lesson...</h2>
+                <h2 id="lesson-title" class="text-xl font-black italic uppercase">Loading...</h2>
                 <p id="lesson-desc" class="text-xs text-zinc-400 leading-relaxed"></p>
             </div>
 
-            <div class="relative group">
-                <p class="text-[8px] font-black text-zinc-600 uppercase mb-2 tracking-widest">Interactive Editor</p>
-                <textarea id="code-input" class="w-full h-40 bg-zinc-950 border border-white/5 p-5 rounded-3xl editor-box text-sm text-fuchsia-400 outline-none focus:border-fuchsia-600/50 transition-colors" placeholder="// Type your code here..."></textarea>
-                <div id="code-success" class="hidden absolute inset-0 bg-green-500/10 rounded-3xl border border-green-500/50 flex items-center justify-center backdrop-blur-sm">
+            <div class="relative">
+                <textarea id="code-input" class="w-full h-40 editor p-6 rounded-3xl outline-none border border-white/5 focus:border-fuchsia-600/30 transition-all text-sm" placeholder="// Enter code here..."></textarea>
+                <div id="success-overlay" class="hidden absolute inset-0 bg-green-500/10 rounded-3xl flex items-center justify-center border border-green-500/30">
                     <span class="material-icons text-green-500 text-4xl">check_circle</span>
                 </div>
             </div>
 
             <div class="flex gap-3">
-                <button onclick="checkCode()" class="btn-glow flex-1 bg-fuchsia-600 py-5 rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg shadow-fuchsia-900/20">Run Code</button>
-                <button onclick="askAI()" class="w-16 bg-zinc-900 rounded-2xl flex items-center justify-center border border-white/5 hover:bg-zinc-800 transition-colors">
-                    <span class="material-icons text-fuchsia-500">auto_awesome</span>
+                <button onclick="checkCode()" class="flex-1 bg-fuchsia-600 py-5 rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg shadow-fuchsia-900/20 active:scale-95 transition-transform">Run & Check</button>
+                <button onclick="showAI()" class="w-16 bg-zinc-900 rounded-2xl flex items-center justify-center border border-white/10 text-fuchsia-500">
+                    <span class="material-icons">auto_awesome</span>
                 </button>
             </div>
         </div>
     </div>
 
-    <div id="ai-modal" class="hidden fixed inset-0 bg-black/80 z-[300] flex items-center justify-center p-6 backdrop-blur-sm">
+    <div id="ai-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-8 backdrop-blur-md">
         <div class="bg-zinc-900 w-full max-w-sm rounded-[40px] p-8 border border-white/10 text-center space-y-4">
-            <div class="w-16 h-16 bg-fuchsia-600/20 rounded-full mx-auto flex items-center justify-center">
-                <span class="material-icons text-fuchsia-500 text-3xl animate-pulse">psychology</span>
-            </div>
-            <h3 class="text-lg font-black italic uppercase">AI Mentor Hint</h3>
-            <p id="ai-hint" class="text-[11px] text-zinc-400 leading-relaxed italic"></p>
-            <button onclick="document.getElementById('ai-modal').classList.add('hidden')" class="w-full bg-zinc-800 py-3 rounded-xl font-black uppercase text-[9px]">Got it, Coach</button>
+            <span class="material-icons text-fuchsia-600 text-4xl">psychology</span>
+            <h3 class="font-black italic uppercase">AI Mentor Hint</h3>
+            <p id="ai-text" class="text-[11px] text-zinc-400 leading-relaxed italic"></p>
+            <button onclick="document.getElementById('ai-modal').classList.add('hidden')" class="w-full bg-zinc-800 py-4 rounded-xl font-black uppercase text-[9px] mt-4">I got this</button>
         </div>
     </div>
-
-    <nav class="fixed bottom-0 left-0 right-0 app-card border-t border-white/5 flex justify-around p-4 pb-8 z-50">
-        <button class="text-fuchsia-500"><span class="material-icons">school</span></button>
-        <button class="text-zinc-600"><span class="material-icons">shopping_bag</span></button>
-        <button class="text-zinc-600"><span class="material-icons">leaderboard</span></button>
-    </nav>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -93,62 +75,49 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        let currentUser = null;
-        let userData = {};
-
-        // THE PATH DATA (Coddy-style lessons)
-        const lessons = [
-            { id: 1, title: "The Alert Box", desc: "Let's start by making JavaScript talk. Use <code>alert('Hello')</code> to create a popup.", key: "alert(", hint: "Make sure you use alert('text') with parentheses and quotes!" },
-            { id: 2, title: "Variables", desc: "A variable stores data. Create a variable called 'name' like this: <code>let name = 'YourName';</code>", key: "let name =", hint: "Did you use the 'let' keyword followed by 'name'?" },
-            { id: 3, title: "The Console", desc: "Print a message to the secret developer tools using <code>console.log('Done')</code>.", key: "console.log(", hint: "Typing console.log() is how we debug code!" }
+        let currentUser = null, userData = {};
+        
+        const path = [
+            { id: 1, t: "Say Hello", d: "In JS, <code>alert()</code> creates a pop-up. Try it with 'Hello'.", k: "alert('Hello')", h: "Type alert('Hello') exactly as seen!" },
+            { id: 2, t: "Variables", d: "Create a variable named <code>xp</code> and set it to 100.", k: "let xp = 100", h: "Use 'let' followed by 'xp = 100'" },
+            { id: 3, t: "The Console", d: "Write <code>console.log('Safe')</code> to print to the log.", k: "console.log('Safe')", h: "Check your spelling: console.log()" }
         ];
 
-        window.renderLesson = (lvl) => {
-            const current = lessons.find(l => l.id === lvl) || lessons[lessons.length - 1];
-            document.getElementById('lesson-title').innerText = current.title;
-            document.getElementById('lesson-desc').innerHTML = current.desc;
+        window.loadLesson = (lvl) => {
+            const l = path.find(i => i.id === lvl) || path[path.length - 1];
+            document.getElementById('lesson-title').innerText = l.t;
+            document.getElementById('lesson-desc').innerHTML = l.d;
             document.getElementById('code-input').value = "";
-            document.getElementById('code-success').classList.add('hidden');
+            document.getElementById('success-overlay').classList.add('hidden');
         };
 
         window.checkCode = async () => {
-            const input = document.getElementById('code-input').value;
-            const current = lessons.find(l => l.id === userData.level);
-            
-            if (input.includes(current.key)) {
-                // SUCCESS
-                document.getElementById('code-success').classList.remove('hidden');
+            const input = document.getElementById('code-input').value.trim();
+            const current = path.find(i => i.id === userData.level);
+            if(input === current.k) {
+                document.getElementById('success-overlay').classList.remove('hidden');
                 setTimeout(async () => {
-                    await updateDoc(doc(db, "users", currentUser.uid), {
-                        level: increment(1),
-                        points: increment(50)
-                    });
-                }, 1000);
-            } else {
-                alert("Not quite! Try again or ask the AI.");
-            }
+                    await updateDoc(doc(db, "users", currentUser.uid), { level: increment(1), points: increment(100) });
+                }, 1200);
+            } else { alert("Try again! Your syntax might be slightly off."); }
         };
 
-        window.askAI = () => {
-            const current = lessons.find(l => l.id === userData.level);
-            document.getElementById('ai-hint').innerText = current.hint;
+        window.showAI = () => {
+            document.getElementById('ai-text').innerText = path.find(i => i.id === userData.level).h;
             document.getElementById('ai-modal').classList.remove('hidden');
         };
 
-        onAuthStateChanged(auth, (user) => {
-            if (!user) return window.location.href = 'index.html';
-            currentUser = user;
-            onSnapshot(doc(db, "users", user.uid), (s) => {
+        onAuthStateChanged(auth, (u) => {
+            if(!u) return window.location.href='index.html';
+            currentUser = u;
+            onSnapshot(doc(db, "users", u.uid), (s) => {
                 userData = s.data();
-                document.getElementById('ui-points').innerText = (userData.points || 0) + " SP";
+                document.getElementById('ui-points').innerText = userData.points + " SP";
                 document.getElementById('verified-badge').classList.toggle('hidden', !userData.isVerified);
-                
-                // Progress Math
-                const percent = Math.floor(((userData.level - 1) / lessons.length) * 100);
-                document.getElementById('progress-bar').style.width = percent + "%";
-                document.getElementById('ui-percent').innerText = percent + "%";
-                
-                renderLesson(userData.level);
+                const p = Math.floor(((userData.level - 1) / path.length) * 100);
+                document.getElementById('progress-bar').style.width = p + "%";
+                document.getElementById('ui-percent').innerText = p + "%";
+                loadLesson(userData.level);
             });
         });
     </script>
