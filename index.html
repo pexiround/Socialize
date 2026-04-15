@@ -2,28 +2,18 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Socialize | Academy</title>
+    <title>Socialize Academy | Login</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { background: #050505; color: white; font-family: 'Inter', sans-serif; }
-        .input-box { background: #0d0d0d; border: 1px solid rgba(255,255,255,0.05); }
-    </style>
 </head>
-<body class="h-screen flex items-center justify-center p-6">
-    <div class="w-full max-w-sm space-y-8 text-center">
+<body class="bg-[#050505] text-white h-screen flex items-center justify-center p-6 font-sans">
+    <div class="w-full max-w-sm text-center space-y-8">
         <div>
-            <h1 class="text-4xl font-black italic text-fuchsia-600 tracking-tighter">SOCIALIZE</h1>
-            <p class="text-zinc-500 text-[10px] uppercase tracking-[0.2em] mt-2">AI Coding Academy</p>
+            <h1 class="text-5xl font-black italic text-fuchsia-600 tracking-tighter">SOCIALIZE</h1>
+            <p class="text-zinc-500 text-[10px] uppercase tracking-[0.3em] mt-2 font-bold">Code Academy</p>
         </div>
-
-        <div class="space-y-3">
-            <button onclick="processGoogle()" class="w-full bg-white text-black py-4 rounded-2xl font-black uppercase text-xs flex items-center justify-center gap-2 hover:bg-zinc-200 transition-all">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/pwa_inc_64.png" class="w-4 h-4"> Continue with Google
-            </button>
-            <p class="text-[9px] text-zinc-600 px-6 uppercase font-bold tracking-widest leading-relaxed">
-                By signing in, you agree to our <span class="text-white underline">Learning Privacy Policy</span>
-            </p>
-        </div>
+        <button onclick="login()" class="w-full bg-white text-black py-5 rounded-[24px] font-black uppercase text-xs flex items-center justify-center gap-3 hover:scale-[1.02] transition-transform">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/pwa_inc_64.png" class="w-5 h-5"> Continue with Google
+        </button>
     </div>
 
     <script type="module">
@@ -35,19 +25,16 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const provider = new GoogleAuthProvider();
 
-        window.processGoogle = async () => {
-            try {
-                const res = await signInWithPopup(auth, provider);
-                const userRef = doc(db, "users", res.user.uid);
-                const d = await getDoc(userRef);
-                if (!d.exists()) {
-                    await setDoc(userRef, { name: res.user.displayName, points: 0, level: 1, isVerified: false });
-                }
-                window.location.href = 'hub.html';
-            } catch (e) { console.error(e); }
-        }
+        window.login = async () => {
+            const res = await signInWithPopup(auth, new GoogleAuthProvider());
+            const userRef = doc(db, "users", res.user.uid);
+            const d = await getDoc(userRef);
+            if (!d.exists()) {
+                await setDoc(userRef, { name: res.user.displayName, points: 100, level: 1, isVerified: false });
+            }
+            window.location.href = 'hub.html';
+        };
     </script>
 </body>
 </html>
