@@ -2,49 +2,33 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Socialize | Code Academy</title>
+    <title>Socialize | Academy</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
         body { background: #050505; color: white; font-family: 'Inter', sans-serif; }
         .input-box { background: #0d0d0d; border: 1px solid rgba(255,255,255,0.05); }
     </style>
 </head>
 <body class="h-screen flex items-center justify-center p-6">
-
-    <div class="w-full max-w-sm space-y-8">
-        <div class="text-center">
+    <div class="w-full max-w-sm space-y-8 text-center">
+        <div>
             <h1 class="text-4xl font-black italic text-fuchsia-600 tracking-tighter">SOCIALIZE</h1>
-            <p class="text-zinc-500 text-[10px] uppercase tracking-[0.2em] mt-2">The AI Coding Path</p>
+            <p class="text-zinc-500 text-[10px] uppercase tracking-[0.2em] mt-2">AI Coding Academy</p>
         </div>
 
         <div class="space-y-3">
-            <button onclick="showPolicy('google')" class="w-full bg-white text-black py-4 rounded-2xl font-black uppercase text-xs flex items-center justify-center gap-2">
+            <button onclick="processGoogle()" class="w-full bg-white text-black py-4 rounded-2xl font-black uppercase text-xs flex items-center justify-center gap-2 hover:bg-zinc-200 transition-all">
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/pwa_inc_64.png" class="w-4 h-4"> Continue with Google
             </button>
-            <button onclick="alert('Apple Sign-in requires an Apple Developer Program membership to activate live!')" class="w-full bg-zinc-900 text-white py-4 rounded-2xl font-black uppercase text-xs flex items-center justify-center gap-2">
-                <span class="material-icons text-base">apple</span> Continue with Apple
-            </button>
-            
-            <div class="flex items-center py-4"><div class="flex-grow border-t border-white/5"></div><span class="mx-4 text-zinc-800 text-[9px] font-bold">OR EMAIL</span><div class="flex-grow border-t border-white/5"></div></div>
-            
-            <input type="email" id="email" placeholder="Email" class="w-full input-box p-4 rounded-2xl outline-none text-sm">
-            <input type="password" id="pass" placeholder="Password" class="w-full input-box p-4 rounded-2xl outline-none text-sm">
-            <button onclick="login()" class="w-full bg-fuchsia-600/10 text-fuchsia-500 border border-fuchsia-600/20 py-4 rounded-2xl font-black uppercase text-xs mt-2">Login / Sign Up</button>
-        </div>
-    </div>
-
-    <div id="privacy-modal" class="hidden fixed inset-0 bg-black/90 z-[200] flex items-center justify-center p-6 backdrop-blur-md">
-        <div class="bg-zinc-900 w-full max-w-md rounded-[40px] p-8 border border-white/10 space-y-4">
-            <h2 class="text-xl font-black italic text-fuchsia-600 uppercase">Privacy Policy</h2>
-            <p class="text-[11px] text-zinc-400 leading-relaxed">By joining, you agree that we store your progress and AI chat history to improve your learning path.</p>
-            <button id="btn-accept-policy" class="w-full bg-fuchsia-600 py-4 rounded-2xl font-black text-xs uppercase">Accept & Start Learning</button>
+            <p class="text-[9px] text-zinc-600 px-6 uppercase font-bold tracking-widest leading-relaxed">
+                By signing in, you agree to our <span class="text-white underline">Learning Privacy Policy</span>
+            </p>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyCNl7BW60B6GrHrGx02QaiUbZU3Z3oYlXM", authDomain: "socialize-614d2.firebaseapp.com", projectId: "socialize-614d2", storageBucket: "socialize-614d2.firebasestorage.app", messagingSenderId: "506436447388", appId: "1:506436447388:web:c8d876b69ed57048981159" };
@@ -53,21 +37,16 @@
         const db = getFirestore(app);
         const provider = new GoogleAuthProvider();
 
-        window.showPolicy = (type) => {
-            document.getElementById('privacy-modal').classList.remove('hidden');
-            document.getElementById('btn-accept-policy').onclick = () => type === 'google' ? processGoogle() : login();
-        };
-
-        async function processGoogle() {
+        window.processGoogle = async () => {
             try {
                 const res = await signInWithPopup(auth, provider);
                 const userRef = doc(db, "users", res.user.uid);
                 const d = await getDoc(userRef);
                 if (!d.exists()) {
-                    await setDoc(userRef, { name: res.user.displayName, points: 0, level: 1, inventory: [], isVerified: false, acceptedPolicy: true });
+                    await setDoc(userRef, { name: res.user.displayName, points: 0, level: 1, isVerified: false });
                 }
                 window.location.href = 'hub.html';
-            } catch (e) { alert(e.message); }
+            } catch (e) { console.error(e); }
         }
     </script>
 </body>
