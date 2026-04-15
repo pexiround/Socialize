@@ -2,23 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Socialize | Hub</title>
+    <title>Socialize | Learning Path</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
         body { background: #050505; color: white; font-family: 'Inter', sans-serif; overflow: hidden; }
         .app-card { background: #0d0d0d; border: 1px solid rgba(255,255,255,0.05); }
-        .msg { margin-bottom: 8px; padding: 12px; border-radius: 20px; font-size: 13px; max-width: 80%; }
-        .msg-mine { background: #d946ef; margin-left: auto; border-bottom-right-radius: 4px; }
-        .msg-theirs { background: #1a1a1a; margin-right: auto; border-bottom-left-radius: 4px; }
-        
-        /* ITEM SHOP FRAMES */
-        .frame-gold { border: 3px solid #fbbf24; box-shadow: 0 0 15px #fbbf2466; }
-        .frame-fuchsia { border: 3px solid #d946ef; box-shadow: 0 0 15px #d946ef66; }
-        .frame-cyan { border: 3px solid #22d3ee; box-shadow: 0 0 15px #22d3ee66; }
-        .frame-crimson { border: 3px solid #ef4444; box-shadow: 0 0 15px #ef444466; }
-        .frame-emerald { border: 3px solid #10b981; box-shadow: 0 0 15px #10b98166; }
-        
+        .editor-box { font-family: 'Fira Code', monospace; scrollbar-width: none; }
+        .btn-glow:active { transform: scale(0.98); box-shadow: 0 0 20px rgba(217, 70, 239, 0.4); }
         .hidden { display: none !important; }
     </style>
 </head>
@@ -29,223 +20,137 @@
             <h1 class="text-xl font-black italic text-fuchsia-600">SOCIALIZE</h1>
             <span id="verified-badge" class="hidden material-icons text-blue-400 text-lg">verified</span>
         </div>
-        <p id="ui-points" class="text-yellow-500 font-bold text-[10px] uppercase tracking-widest">0 SP</p>
+        <div class="flex items-center gap-3">
+            <p id="ui-points" class="text-yellow-500 font-bold text-[10px] uppercase tracking-widest">0 SP</p>
+            <div class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center border border-white/10">
+                <span class="material-icons text-sm text-zinc-500">person</span>
+            </div>
+        </div>
     </div>
 
-    <div id="main-content" class="flex-1 overflow-y-auto p-6 pb-24">
+    <div id="main-content" class="flex-1 overflow-y-auto p-6 pb-24 space-y-6">
         
-        <div id="view-chat" class="space-y-6">
-            <h3 class="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Active Peers</h3>
-            <div id="users-list" class="space-y-3"></div>
+        <div class="app-card p-6 rounded-[35px] border-b-4 border-fuchsia-900/30">
+            <div class="flex justify-between items-end mb-3">
+                <div>
+                    <h3 class="text-fuchsia-500 font-black italic text-lg uppercase leading-none">JS Basics</h3>
+                    <p class="text-[9px] text-zinc-500 font-bold uppercase mt-1">Intro to the Web</p>
+                </div>
+                <p id="ui-percent" class="text-[10px] font-black">0%</p>
+            </div>
+            <div class="w-full bg-zinc-950 h-2 rounded-full overflow-hidden border border-white/5">
+                <div id="progress-bar" class="bg-fuchsia-600 h-full transition-all duration-700" style="width: 0%"></div>
+            </div>
         </div>
 
-        <div id="view-shop" class="hidden space-y-6">
-            <div class="flex justify-between items-end">
-                <h3 class="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Daily Rotation</h3>
-                <p id="shop-timer" class="text-[8px] text-fuchsia-500 font-bold uppercase">Refreshing in 12h</p>
+        <div id="lesson-card" class="app-card p-8 rounded-[40px] space-y-6">
+            <div class="space-y-2">
+                <h2 id="lesson-title" class="text-xl font-black italic uppercase text-white">Loading Lesson...</h2>
+                <p id="lesson-desc" class="text-xs text-zinc-400 leading-relaxed"></p>
             </div>
-            <div id="shop-list" class="grid grid-cols-1 gap-4"></div>
-        </div>
 
-        <div id="view-settings" class="hidden space-y-6">
-            <div class="app-card p-8 rounded-[40px] text-center space-y-4">
-                <div id="my-frame-preview" class="w-24 h-24 mx-auto rounded-3xl overflow-hidden bg-zinc-800 transition-all duration-500">
-                    <img id="my-pfp" class="w-full h-full object-cover">
+            <div class="relative group">
+                <p class="text-[8px] font-black text-zinc-600 uppercase mb-2 tracking-widest">Interactive Editor</p>
+                <textarea id="code-input" class="w-full h-40 bg-zinc-950 border border-white/5 p-5 rounded-3xl editor-box text-sm text-fuchsia-400 outline-none focus:border-fuchsia-600/50 transition-colors" placeholder="// Type your code here..."></textarea>
+                <div id="code-success" class="hidden absolute inset-0 bg-green-500/10 rounded-3xl border border-green-500/50 flex items-center justify-center backdrop-blur-sm">
+                    <span class="material-icons text-green-500 text-4xl">check_circle</span>
                 </div>
-                <div class="space-y-1">
-                    <h2 id="set-name" class="font-black italic text-xl uppercase leading-none">User</h2>
-                    <p class="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">Profile Identity</p>
-                </div>
-                <input type="text" id="edit-name-in" placeholder="Update Name" class="w-full bg-zinc-900 border border-white/10 p-4 rounded-2xl outline-none text-sm focus:border-fuchsia-600">
-                <button onclick="updateProfileName()" class="w-full bg-white text-black py-4 rounded-2xl font-black uppercase text-[10px]">Save Profile</button>
             </div>
-            <button id="btn-logout" class="w-full text-zinc-700 font-bold uppercase text-[10px]">Logout</button>
+
+            <div class="flex gap-3">
+                <button onclick="checkCode()" class="btn-glow flex-1 bg-fuchsia-600 py-5 rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg shadow-fuchsia-900/20">Run Code</button>
+                <button onclick="askAI()" class="w-16 bg-zinc-900 rounded-2xl flex items-center justify-center border border-white/5 hover:bg-zinc-800 transition-colors">
+                    <span class="material-icons text-fuchsia-500">auto_awesome</span>
+                </button>
+            </div>
         </div>
     </div>
 
-    <div id="chat-modal" class="hidden fixed inset-0 bg-black z-[100] flex flex-col">
-        <div class="p-6 flex justify-between items-center app-card">
-            <button onclick="closeChat()" class="material-icons">arrow_back</button>
-            <h2 id="chat-target-name" class="font-black italic text-sm uppercase">Chatting</h2>
-            <div class="w-2 h-2 bg-green-500 rounded-full"></div>
-        </div>
-        <div id="private-chat-box" class="flex-1 overflow-y-auto p-6 space-y-4 flex flex-col"></div>
-        <div class="p-6 bg-zinc-900 flex gap-2">
-            <input type="text" id="private-chat-in" placeholder="Send a message..." class="flex-1 bg-zinc-800 p-4 rounded-2xl outline-none text-sm">
-            <button id="btn-private-send" class="bg-fuchsia-600 p-4 rounded-2xl"><span class="material-icons">send</span></button>
+    <div id="ai-modal" class="hidden fixed inset-0 bg-black/80 z-[300] flex items-center justify-center p-6 backdrop-blur-sm">
+        <div class="bg-zinc-900 w-full max-w-sm rounded-[40px] p-8 border border-white/10 text-center space-y-4">
+            <div class="w-16 h-16 bg-fuchsia-600/20 rounded-full mx-auto flex items-center justify-center">
+                <span class="material-icons text-fuchsia-500 text-3xl animate-pulse">psychology</span>
+            </div>
+            <h3 class="text-lg font-black italic uppercase">AI Mentor Hint</h3>
+            <p id="ai-hint" class="text-[11px] text-zinc-400 leading-relaxed italic"></p>
+            <button onclick="document.getElementById('ai-modal').classList.add('hidden')" class="w-full bg-zinc-800 py-3 rounded-xl font-black uppercase text-[9px]">Got it, Coach</button>
         </div>
     </div>
 
     <nav class="fixed bottom-0 left-0 right-0 app-card border-t border-white/5 flex justify-around p-4 pb-8 z-50">
-        <button onclick="tab('chat')" class="text-fuchsia-500" id="tab-chat"><span class="material-icons">explore</span></button>
-        <button onclick="tab('shop')" class="text-zinc-600" id="tab-shop"><span class="material-icons">shopping_bag</span></button>
-        <button onclick="tab('settings')" class="text-zinc-600" id="tab-settings"><span class="material-icons">person</span></button>
+        <button class="text-fuchsia-500"><span class="material-icons">school</span></button>
+        <button class="text-zinc-600"><span class="material-icons">shopping_bag</span></button>
+        <button class="text-zinc-600"><span class="material-icons">leaderboard</span></button>
     </nav>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs, updateDoc, serverTimestamp, addDoc, orderBy, onSnapshot, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, onSnapshot, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyCNl7BW60B6GrHrGx02QaiUbZU3Z3oYlXM", authDomain: "socialize-614d2.firebaseapp.com", projectId: "socialize-614d2", storageBucket: "socialize-614d2.firebasestorage.app", messagingSenderId: "506436447388", appId: "1:506436447388:web:c8d876b69ed57048981159" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        let currentUser = null; 
-        let userData = {}; 
-        let chatUnsub = null;
+        let currentUser = null;
+        let userData = {};
 
-        // ALL POSSIBLE SHOP ITEMS
-        const allItems = [
-            { id: 'frame-gold', n: 'Royal Gold', p: 1000, c: 'frame-gold' },
-            { id: 'frame-fuchsia', n: 'Neon Fuchsia', p: 500, c: 'frame-fuchsia' },
-            { id: 'frame-cyan', n: 'Ice Cyan', p: 300, c: 'frame-cyan' },
-            { id: 'frame-crimson', n: 'Crimson Fury', p: 750, c: 'frame-crimson' },
-            { id: 'frame-emerald', n: 'Emerald Glow', p: 400, c: 'frame-emerald' }
+        // THE PATH DATA (Coddy-style lessons)
+        const lessons = [
+            { id: 1, title: "The Alert Box", desc: "Let's start by making JavaScript talk. Use <code>alert('Hello')</code> to create a popup.", key: "alert(", hint: "Make sure you use alert('text') with parentheses and quotes!" },
+            { id: 2, title: "Variables", desc: "A variable stores data. Create a variable called 'name' like this: <code>let name = 'YourName';</code>", key: "let name =", hint: "Did you use the 'let' keyword followed by 'name'?" },
+            { id: 3, title: "The Console", desc: "Print a message to the secret developer tools using <code>console.log('Done')</code>.", key: "console.log(", hint: "Typing console.log() is how we debug code!" }
         ];
 
-        // DAILY ROTATION LOGIC (Picks items based on the date)
-        function getDailyItems() {
-            const day = new Date().getDate();
-            const first = allItems[day % allItems.length];
-            const second = allItems[(day + 2) % allItems.length];
-            return [first, second];
-        }
-
-        window.tab = (t) => {
-            ['view-chat', 'view-shop', 'view-settings'].forEach(v => document.getElementById(v).classList.add('hidden'));
-            document.getElementById('view-' + t).classList.remove('hidden');
-            if(t === 'shop') renderShop();
+        window.renderLesson = (lvl) => {
+            const current = lessons.find(l => l.id === lvl) || lessons[lessons.length - 1];
+            document.getElementById('lesson-title').innerText = current.title;
+            document.getElementById('lesson-desc').innerHTML = current.desc;
+            document.getElementById('code-input').value = "";
+            document.getElementById('code-success').classList.add('hidden');
         };
 
-        window.renderShop = () => {
-            const list = document.getElementById('shop-list'); list.innerHTML = "";
-            getDailyItems().forEach(item => {
-                const owned = userData.inventory?.includes(item.id);
-                const equipped = userData.equippedFrame === item.id;
-                
-                const div = document.createElement('div');
-                div.className = "app-card p-5 rounded-[30px] flex items-center justify-between border border-white/5";
-                div.innerHTML = `
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-xl bg-zinc-900 flex items-center justify-center ${item.c}">
-                            <span class="material-icons text-zinc-700">style</span>
-                        </div>
-                        <div>
-                            <p class="text-xs font-black uppercase italic">${item.n}</p>
-                            <p class="text-[10px] text-yellow-500 font-bold">${owned ? 'OWNED' : item.p + ' SP'}</p>
-                        </div>
-                    </div>
-                    <button onclick="${owned ? `equipItem('${item.id}')` : `buyItem('${item.id}', ${item.p})`}" 
-                        class="px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest ${equipped ? 'bg-zinc-800 text-zinc-500' : 'bg-fuchsia-600 text-white'}">
-                        ${owned ? (equipped ? 'Equipped' : 'Equip') : 'Buy'}
-                    </button>
-                `;
-                list.appendChild(div);
-            });
-        };
-
-        window.buyItem = async (id, price) => {
-            if(userData.points < price) return alert("Not enough SP!");
-            const newInv = [...(userData.inventory || []), id];
-            await updateDoc(doc(db, "users", currentUser.uid), {
-                points: increment(-price),
-                inventory: newInv
-            });
-        };
-
-        window.equipItem = async (id) => {
-            await updateDoc(doc(db, "users", currentUser.uid), { equippedFrame: id });
-        };
-
-        window.updateProfileName = async () => {
-            const newName = document.getElementById('edit-name-in').value;
-            if(!newName) return;
-            await updateDoc(doc(db, "users", currentUser.uid), { name: newName });
-            alert("Name updated!");
-        };
-
-        // CHAT RE-FIXED
-        window.openChat = async (tid, tname) => {
-            const rid = [currentUser.uid, tid].sort().join("_");
-            document.getElementById('chat-target-name').innerText = tname;
-            document.getElementById('chat-modal').classList.remove('hidden');
+        window.checkCode = async () => {
+            const input = document.getElementById('code-input').value;
+            const current = lessons.find(l => l.id === userData.level);
             
-            if(chatUnsub) chatUnsub();
-            const q = query(collection(db, "rooms", rid, "messages"), orderBy("createdAt", "asc"));
-            chatUnsub = onSnapshot(q, (snap) => {
-                const box = document.getElementById('private-chat-box'); box.innerHTML = "";
-                snap.forEach(d => {
-                    const m = d.data();
-                    const div = document.createElement('div');
-                    div.className = `msg ${m.uid === currentUser.uid ? 'msg-mine' : 'msg-theirs'}`;
-                    div.innerText = m.text;
-                    box.appendChild(div);
-                });
-                box.scrollTop = box.scrollHeight;
-            });
-
-            document.getElementById('btn-private-send').onclick = async () => {
-                const inp = document.getElementById('private-chat-in'); if(!inp.value) return;
-                const text = inp.value; inp.value = "";
-                const roomRef = doc(db, "rooms", rid);
-                if(!(await getDoc(roomRef)).exists()) await setDoc(roomRef, { participants: [currentUser.uid, tid] });
-                await addDoc(collection(db, "rooms", rid, "messages"), { text, uid: currentUser.uid, createdAt: serverTimestamp() });
-            };
+            if (input.includes(current.key)) {
+                // SUCCESS
+                document.getElementById('code-success').classList.remove('hidden');
+                setTimeout(async () => {
+                    await updateDoc(doc(db, "users", currentUser.uid), {
+                        level: increment(1),
+                        points: increment(50)
+                    });
+                }, 1000);
+            } else {
+                alert("Not quite! Try again or ask the AI.");
+            }
         };
 
-        window.closeChat = () => { document.getElementById('chat-modal').classList.add('hidden'); if(chatUnsub) chatUnsub(); };
-
-        // PRESENCE & GHOST FIX
-        window.refreshUsers = async () => {
-            const q = query(collection(db, "users"), where("status", "==", "online"));
-            const snap = await getDocs(q);
-            const list = document.getElementById('users-list'); list.innerHTML = "";
-            snap.forEach(d => {
-                const u = d.data();
-                if(d.id !== currentUser.uid && (Date.now() - (u.lastActive?.toMillis() || 0) < 300000)) {
-                    const div = document.createElement('div');
-                    div.className = "flex items-center justify-between p-4 app-card rounded-2xl";
-                    div.innerHTML = `
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-zinc-800 ${u.equippedFrame || ''}">
-                                <img src="https://api.dicebear.com/7.x/shapes/svg?seed=${d.id}" class="w-full h-full">
-                            </div>
-                            <p class="text-xs font-black italic uppercase">${u.name}</p>
-                        </div>
-                        <button onclick="openChat('${d.id}', '${u.name}')" class="bg-fuchsia-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase">Chat</button>
-                    `;
-                    list.appendChild(div);
-                }
-            });
+        window.askAI = () => {
+            const current = lessons.find(l => l.id === userData.level);
+            document.getElementById('ai-hint').innerText = current.hint;
+            document.getElementById('ai-modal').classList.remove('hidden');
         };
 
-        onAuthStateChanged(auth, async (user) => {
-            if(!user) return window.location.href = 'index.html';
+        onAuthStateChanged(auth, (user) => {
+            if (!user) return window.location.href = 'index.html';
             currentUser = user;
-            const ref = doc(db, "users", user.uid);
-            
-            // Heartbeat
-            await updateDoc(ref, { status: "online", lastActive: serverTimestamp() });
-            setInterval(() => updateDoc(ref, { lastActive: serverTimestamp() }), 60000);
-
-            onSnapshot(ref, (s) => {
-                userData = s.data() || {};
+            onSnapshot(doc(db, "users", user.uid), (s) => {
+                userData = s.data();
                 document.getElementById('ui-points').innerText = (userData.points || 0) + " SP";
-                document.getElementById('set-name').innerText = userData.name || "User";
-                document.getElementById('my-pfp').src = `https://api.dicebear.com/7.x/shapes/svg?seed=${user.uid}`;
-                
-                // VERIFIED LOGIC: Show badge if true
                 document.getElementById('verified-badge').classList.toggle('hidden', !userData.isVerified);
                 
-                // PREVIEW FRAME
-                document.getElementById('my-frame-preview').className = `w-24 h-24 mx-auto rounded-3xl overflow-hidden bg-zinc-800 transition-all duration-500 ${userData.equippedFrame || ''}`;
+                // Progress Math
+                const percent = Math.floor(((userData.level - 1) / lessons.length) * 100);
+                document.getElementById('progress-bar').style.width = percent + "%";
+                document.getElementById('ui-percent').innerText = percent + "%";
+                
+                renderLesson(userData.level);
             });
-            refreshUsers();
         });
-
-        document.getElementById('btn-logout').onclick = () => signOut(auth);
     </script>
 </body>
 </html>
