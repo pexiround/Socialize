@@ -1,44 +1,167 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Socialize | Login</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Baseplate | True POV</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
-        body { background: #0a0a0a; font-family: 'VT323', monospace; color: white; }
+        body { margin: 0; overflow: hidden; background: #000; font-family: monospace; }
+        #instructions {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            color: white; background: rgba(0,0,0,0.8); padding: 20px; text-align: center;
+            border: 2px solid #555; cursor: pointer; z-index: 10;
+        }
     </style>
 </head>
-<body class="h-screen flex items-center justify-center">
-    <div class="bg-zinc-900 p-8 rounded-3xl border-4 border-zinc-800 w-80 text-center">
-        <h1 class="text-4xl text-fuchsia-500 mb-6">SOCIALIZE</h1>
-        <div class="space-y-4">
-            <input id="email" type="email" placeholder="EMAIL" class="w-full bg-black p-3 border-2 border-zinc-700 outline-none focus:border-fuchsia-500">
-            <input id="pass" type="password" placeholder="PASSWORD" class="w-full bg-black p-3 border-2 border-zinc-700 outline-none focus:border-fuchsia-500">
-            <button onclick="login()" class="w-full bg-fuchsia-600 p-3 text-xl hover:bg-fuchsia-500">LOGIN</button>
-            <button onclick="signup()" class="text-zinc-500 text-sm">CREATE ACCOUNT</button>
-        </div>
+<body>
+
+    <div id="instructions">
+        <h1>CLICK TO SPAWN</h1>
+        <p>(WASD to Move | Mouse to Look)</p>
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import * as THREE from 'https://cdn.skypack.dev/three@0.136.0';
+        import { PointerLockControls } from 'https://cdn.skypack.dev/three@0.136.0/examples/jsm/controls/PointerLockControls.js';
 
-        const firebaseConfig = { apiKey: "AIzaSyCNl7BW60B6GrHrGx02QaiUbZU3Z3oYlXM", authDomain: "socialize-614d2.firebaseapp.com", projectId: "socialize-614d2", storageBucket: "socialize-614d2.firebasestorage.app", messagingSenderId: "506436447388", appId: "1:506436447388:web:c8d876b69ed57048981159" };
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
+        // --- SETUP ---
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x111111);
+        scene.fog = new THREE.Fog(0x111111, 0, 50);
 
-        window.login = () => {
-            signInWithEmailAndPassword(auth, email.value, pass.value)
-                .then(() => window.location.href = "hub.html")
-                .catch(e => alert(e.message));
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        document.body.appendChild(renderer.domElement);
+
+        // --- LIGHTING ---
+        const light = new THREE.DirectionalLight(0xffffff, 1);
+        light.position.set(5, 10, 5);
+        light.castShadow = true;
+        scene.add(light);
+        scene.add(new THREE.AmbientLight(0x404040));
+
+        // --- THE BASEPLATE ---
+        const grid = new THREE.GridHelper(100, 100, 0x444444, 0x222222);
+        scene.add(grid);
+        const floor = new THREE.Mesh(
+            new THREE.PlaneGeometry(100, 100),
+            new THREE.MeshStandardMaterial({ color: 0x151515 })
+        );
+        floor.rotation.x = -Math.PI / 2;
+        floor.receiveShadow = true;
+        scene.add(floor);
+
+        // --- THE PLAYER BODY ---
+        const playerGroup = new THREE.Group();
+        scene.add(playerGroup);
+
+        // Torso
+        const torso = new THREE.Mesh(
+            new THREE.BoxGeometry(0.6, 0.7, 0.3),
+            new THREE.MeshStandardMaterial({ color: 0x333333 })
+        );
+        torso.position.y = 1.1;
+        torso.castShadow = true;
+        playerGroup.add(torso);
+
+        // Legs
+        const legGeo = new THREE.BoxGeometry(0.2, 0.7, 0.2);
+        const legMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
+        const leftLeg = new THREE.Mesh(legGeo, legMat);
+        leftLeg.position.set(-0.15, 0.4, 0);
+        leftLeg.castShadow = true;
+        playerGroup.add(leftLeg);
+
+        const rightLeg = new THREE.Mesh(legGeo, legMat);
+        rightLeg.position.set(0.15, 0.4, 0);
+        rightLeg.castShadow = true;
+        playerGroup.add(rightLeg);
+
+        // --- CONTROLS ---
+        const controls = new PointerLockControls(camera, document.body);
+        const instructions = document.getElementById('instructions');
+
+        instructions.addEventListener('click', () => controls.lock());
+        controls.addEventListener('lock', () => instructions.style.display = 'none');
+        controls.addEventListener('unlock', () => instructions.style.display = 'block');
+
+        let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false;
+        const onKeyDown = (e) => {
+            switch (e.code) {
+                case 'KeyW': moveForward = true; break;
+                case 'KeyA': moveLeft = true; break;
+                case 'KeyS': moveBackward = true; break;
+                case 'KeyD': moveRight = true; break;
+            }
         };
-
-        window.signup = () => {
-            createUserWithEmailAndPassword(auth, email.value, pass.value)
-                .then(() => window.location.href = "hub.html")
-                .catch(e => alert(e.message));
+        const onKeyUp = (e) => {
+            switch (e.code) {
+                case 'KeyW': moveForward = false; break;
+                case 'KeyA': moveLeft = false; break;
+                case 'KeyS': moveBackward = false; break;
+                case 'KeyD': moveRight = false; break;
+            }
         };
+        document.addEventListener('keydown', onKeyDown);
+        document.addEventListener('keyup', onKeyUp);
+
+        // --- ANIMATION LOOP ---
+        const velocity = new THREE.Vector3();
+        const direction = new THREE.Vector3();
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (controls.isLocked) {
+                // Movement Logic
+                velocity.x -= velocity.x * 10.0 * 0.016;
+                velocity.z -= velocity.z * 10.0 * 0.016;
+
+                direction.z = Number(moveForward) - Number(moveBackward);
+                direction.x = Number(moveRight) - Number(moveLeft);
+                direction.normalize();
+
+                if (moveForward || moveBackward) velocity.z -= direction.z * 400.0 * 0.016;
+                if (moveLeft || moveRight) velocity.x -= direction.x * 400.0 * 0.016;
+
+                controls.moveRight(-velocity.x * 0.016);
+                controls.moveForward(-velocity.z * 0.016);
+
+                // Sync Body to Camera
+                playerGroup.position.copy(camera.position);
+                playerGroup.position.y = 0; // Keep feet on ground
+                
+                // Rotate body to match camera yaw (horizontal) but not pitch (vertical)
+                const cameraDir = new THREE.Vector3();
+                camera.getWorldDirection(cameraDir);
+                playerGroup.rotation.y = Math.atan2(cameraDir.x, cameraDir.z);
+
+                // Subtle leg animation when moving
+                if (moveForward || moveBackward || moveLeft || moveRight) {
+                    const t = Date.now() * 0.01;
+                    leftLeg.position.z = Math.sin(t) * 0.2;
+                    rightLeg.position.z = Math.cos(t) * 0.2;
+                    leftLeg.position.y = 0.4 + Math.abs(Math.sin(t)) * 0.1;
+                    rightLeg.position.y = 0.4 + Math.abs(Math.cos(t)) * 0.1;
+                }
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        // Fix camera height
+        camera.position.y = 1.7; 
+
+        animate();
+
+        // Handle Resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
     </script>
 </body>
 </html>
